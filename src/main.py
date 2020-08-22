@@ -37,12 +37,12 @@ def playerMenu():
     screen.blit(titleTxt1, [width/2-325,height/2 - 300, 500, 100])
     screen.blit(titleTxt2, [width/2-250,height/2 - 250, 500, 100])
 
-    textBoxes = {}
+    textBoxes = []
     for i in range(1,5):
         rect1 = pygame.Rect(width/2 - (140+50),150+ 75*i,140,40)
         rect2 = pygame.Rect(width/2 + 50,150+ 75*i,140,40)
-        textBoxes[rect1] = False
-        textBoxes[rect2] = False
+        textBoxes.append(rect1)
+        textBoxes.append(rect2)
 
         str = f"Player {i}"
         makeButtonFromRect(rect1,0,str,(255,255,255),(0,0,0))
@@ -57,11 +57,7 @@ def playerMenu():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 for rect in textBoxes:
                     if rect.collidepoint(event.pos):
-                        textBoxes[rect] = True
-            #if event.type == pygame.KEYDOWN:
-            #    for rect in textBoxes:
-            #        if textBoxes[rect] == True:
-
+                        playerMenuRunning = False
         pygame.display.update()
 
 def makeButton(x,y,w,h,outlineWidth,txt="",bkgcolor=(128,128,128),txtcolor=(255,255,255)):
