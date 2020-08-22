@@ -1,15 +1,16 @@
 import pygame, random, sys
 
 def mainMenu():
-    buttonX = width/2
-    buttonY = height/2 + 50
     buttonWidth = 130
     buttonHeight = 50
     outlineWidth = 4
+    buttonX = width/2 - buttonWidth/2
+    buttonY = height/2
 
     screen.fill((191,25,25))
 
-    makeRect(buttonX,buttonY,buttonWidth,buttonHeight,outlineWidth,"Start")
+    button = pygame.Rect(buttonX,buttonY,buttonWidth,buttonHeight)
+    makeButtonFromRect(button,outlineWidth,"Start")
 
     titleFont = pygame.font.SysFont(None, 125)
     titleTxt = titleFont.render("Catan Stats", True, (255,230,0))
@@ -22,9 +23,8 @@ def mainMenu():
                 pygame.quit()
                 exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if buttonX-buttonWidth/2-outlineWidth <= pygame.mouse.get_pos()[0] <= (buttonX-buttonWidth/2-outlineWidth)+(buttonWidth+outlineWidth*2):
-                    if buttonY-buttonHeight/2-outlineWidth <= pygame.mouse.get_pos()[1] <= (buttonY-buttonHeight/2-outlineWidth)+(buttonHeight+outlineWidth*2):
-                        mainMenuRunning = False
+                if button.collidepoint(event.pos):
+                   mainMenuRunning = False
         pygame.display.update()
     playerMenu()
 
@@ -39,14 +39,14 @@ def playerMenu():
 
     textBoxes = []
     for i in range(1,5):
-        rect1 = pygame.Rect(250,225+ 75*i,140,40)
-        rect2 = pygame.Rect(450,225+ 75*i,140,40)
+        rect1 = pygame.Rect(width/2 - (140+50),150+ 75*i,140,40)
+        rect2 = pygame.Rect(width/2 + 50,150+ 75*i,140,40)
         textBoxes.append(rect1)
         textBoxes.append(rect2)
 
         str = f"Player {i}"
-        makeRectFromRect(rect1,0,str,(255,255,255),(0,0,0))
-        makeRectFromRect(rect2,0,"Color",(255,255,255),(0,0,0))
+        makeButtonFromRect(rect1,0,str,(255,255,255),(0,0,0))
+        makeButtonFromRect(rect2,0,"Color",(255,255,255),(0,0,0))
 
     playerMenuRunning = True
     while playerMenuRunning:
@@ -54,24 +54,27 @@ def playerMenu():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
-            #if event.type == pygame.MOUSEBUTTONDOWN
-
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                for rect in textBoxes:
+                    if rect.collidepoint(event.pos):
+                        playerMenuRunning = False
         pygame.display.update()
 
-def makeRect(x,y,w,h,outlineWidth,txt="",bkgcolor=(128,128,128),txtcolor=(255,255,255)):
-    pygame.draw.rect(screen,(0,0,0),[x-w/2-outlineWidth,y-h/2-outlineWidth,w+outlineWidth*2,h+outlineWidth*2])
-    pygame.draw.rect(screen,bkgcolor,[x-w/2,y-h/2,w,h])
+def makeButton(x,y,w,h,outlineWidth,txt="",bkgcolor=(128,128,128),txtcolor=(255,255,255)):
+
+    pygame.draw.rect(screen,(0,0,0),[x-outlineWidth,y-outlineWidth,w+2*outlineWidth,h+2*outlineWidth])
+    pygame.draw.rect(screen,bkgcolor,[x,y,w,h])
 
     font = pygame.font.SysFont(None, 40)
     text = font.render(txt, True, txtcolor)
-    screen.blit(text, [x-text.get_rect().width/2,y-text.get_rect().height/2,w,h])
+    screen.blit(text, [x+(w/2 - text.get_width()/2),y+(h/2-text.get_height()/2),text.get_width(),text.get_height()])
 
-def makeRectFromRect(rectangle,outlineWidth,txt="",bkgcolor=(128,128,128),txtcolor=(255,255,255)):
-    makeRect(rectangle.left,rectangle.top,rectangle.w,rectangle.h,outlineWidth,txt,bkgcolor,txtcolor)
+def makeButtonFromRect(rectangle,outlineWidth,txt="",bkgcolor=(128,128,128),txtcolor=(255,255,255)):
+    makeButton(rectangle.left,rectangle.top,rectangle.w,rectangle.h,outlineWidth,txt,bkgcolor,txtcolor)
 
 def main():
-    #mainMenu()
-    playerMenu()
+    mainMenu()
+    #playerMenu()
 
 pygame.init()
 size = width, height = 700,700
