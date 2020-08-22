@@ -1,8 +1,6 @@
 import pygame, random, sys
 
 def mainMenu():
-    global mainMenuRunning
-
     buttonX = width/2
     buttonY = height/2 + 50
     buttonWidth = 130
@@ -22,6 +20,7 @@ def mainMenu():
     titleTxt = titleFont.render('Catan Stats', True, (255,230,0))
     screen.blit(titleTxt, [width/2-250,height/2 - 150, 500, 100])
 
+    mainMenuRunning = True
     while mainMenuRunning:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -41,7 +40,4 @@ pygame.init()
 size = width, height = 700,700
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("Catan Stats")
-
-mainMenuRunning = True
-
 main()
