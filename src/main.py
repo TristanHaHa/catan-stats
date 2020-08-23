@@ -105,7 +105,27 @@ def playerMenu():
 
         pygame.display.update()
     if (nextMenu):
-        print("next menu")
+        errorMessage = ""
+        numPlayers = 0
+        hasPlayer = False
+        for i in range(len(textBoxes)):
+            if i%2 == 0:
+                if textBoxes[i].txt != "":
+                    hasPlayer = True
+                    numPlayers+=1
+            else:
+                if hasPlayer and textBox[i].txt == "":
+                    errorMessage = "Error: must include a color for each player"
+                hasPlayer = False
+
+        if errorMessage == "" and numPlayers < 2:
+            errorMessage = "Error: must have at least 2 players"
+        if errorMessage == "": print("next menu")
+        else:
+            errorFont = pygame.font.SysFont(None, 30)
+            errorTxt = errorFont.render(errorMessage, True, (255,230,0))
+            screen.blit(errorTxt, [nextButtonX-(margin+errorTxt.get_width()),height-(margin+errorTxt.get_height()), 300, 100])
+            print(errorMessage)
     else:
         mainMenu()
 
@@ -141,4 +161,7 @@ pygame.init()
 size = width, height = 700,700
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("Catan Stats")
+
+Player = namedtuple("Player", "name color")
+players = []
 main()
