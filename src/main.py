@@ -172,6 +172,15 @@ def gameMenu(players):
     makeButton(rollButton,outlineWidth,"Roll")
     screen.blit(rollTxt, [margin+(buttonWidth/2 - rollTxt.get_width()/2),rollButtonY/2 - rollTxt.get_height()/2 + margin/10,rollTxt.get_width(), rollTxt.get_height()])
 
+    def displayRoll(roll=0):
+        rollTxt = font.render(f"{roll}", True, (255,230,0))
+        rollTxtBkgd = pygame.Rect(margin+(buttonWidth/2 - rollTxt.get_width()),rollButtonY/2 - rollTxt.get_height()/2 + margin/10,rollTxt.get_width()*2, rollTxt.get_height())
+        makeButton(rollTxtBkgd,0,"",(191,25,25))
+        makeButton(rollButton,outlineWidth,"Roll")
+        screen.blit(rollTxt, [margin+(buttonWidth/2 - rollTxt.get_width()/2),rollButtonY/2 - rollTxt.get_height()/2 + margin/10,rollTxt.get_width(), rollTxt.get_height()])
+
+    displayRoll()
+
     nums = []
     gameMenuRunning = True
     while gameMenuRunning:
@@ -181,13 +190,12 @@ def gameMenu(players):
                 exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if rollButton.collidepoint(event.pos):
-                    roll = rollDice()
+                    for i in range(10):
+                        roll = rollDice()
+                        displayRoll(roll)
+                        pygame.display.update()
+                        pygame.time.delay(20)
                     nums.append(roll)
-                    rollTxt = font.render(f"{roll}", True, (255,230,0))
-                    rollTxtBkgd = pygame.Rect(margin+(buttonWidth/2 - rollTxt.get_width()),rollButtonY/2 - rollTxt.get_height()/2 + margin/10,rollTxt.get_width()*2, rollTxt.get_height())
-                    makeButton(rollTxtBkgd,0,"",(191,25,25))
-                    makeButton(rollButton,outlineWidth,"Roll")
-                    screen.blit(rollTxt, [margin+(buttonWidth/2 - rollTxt.get_width()/2),rollButtonY/2 - rollTxt.get_height()/2 + margin/10,rollTxt.get_width(), rollTxt.get_height()])
         pygame.display.update()
 
 def makeButton(rectangle,outlineWidth,txt="",bkgcolor=(128,128,128),txtcolor=(255,255,255)):
