@@ -10,7 +10,7 @@ def mainMenu():
     screen.fill((191,25,25))
 
     button = pygame.Rect(buttonX,buttonY,buttonWidth,buttonHeight)
-    makeButtonFromRect(button,outlineWidth,"Start")
+    makeButton(button,outlineWidth,"Start")
 
     titleFont = pygame.font.SysFont(None, 125)
     titleTxt = titleFont.render("Catan Stats", True, (255,230,0))
@@ -48,8 +48,8 @@ def playerMenu():
         textBoxesActivity.append(False)
 
         str = f"Player {i}"
-        makeButtonFromRect(rect1,0,str,(255,255,255),(0,0,0))
-        makeButtonFromRect(rect2,0,"Color",(255,255,255),(0,0,0))
+        makeButton(rect1,0,str,(255,255,255),(0,0,0))
+        makeButton(rect2,0,"Color",(255,255,255),(0,0,0))
 
     playerMenuRunning = True
     while playerMenuRunning:
@@ -63,7 +63,11 @@ def playerMenu():
                         playerMenuRunning = False
         pygame.display.update()
 
-def makeButton(x,y,w,h,outlineWidth,txt="",bkgcolor=(128,128,128),txtcolor=(255,255,255)):
+def makeButton(rectangle,outlineWidth,txt="",bkgcolor=(128,128,128),txtcolor=(255,255,255)):
+    x = rectangle.left
+    y = rectangle.top
+    w = rectangle.w
+    h = rectangle.h
 
     pygame.draw.rect(screen,(0,0,0),[x-outlineWidth,y-outlineWidth,w+2*outlineWidth,h+2*outlineWidth])
     pygame.draw.rect(screen,bkgcolor,[x,y,w,h])
@@ -71,9 +75,6 @@ def makeButton(x,y,w,h,outlineWidth,txt="",bkgcolor=(128,128,128),txtcolor=(255,
     font = pygame.font.SysFont(None, 40)
     text = font.render(txt, True, txtcolor)
     screen.blit(text, [x+(w/2 - text.get_width()/2),y+(h/2-text.get_height()/2),text.get_width(),text.get_height()])
-
-def makeButtonFromRect(rectangle,outlineWidth,txt="",bkgcolor=(128,128,128),txtcolor=(255,255,255)):
-    makeButton(rectangle.left,rectangle.top,rectangle.w,rectangle.h,outlineWidth,txt,bkgcolor,txtcolor)
 
 def main():
     mainMenu()
