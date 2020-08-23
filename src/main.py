@@ -1,6 +1,6 @@
 import pygame, random, sys
 from collections import namedtuple
-
+#TODO commit enter and tab features
 def mainMenu():
     buttonWidth = 130
     buttonHeight = 50
@@ -90,6 +90,13 @@ def playerMenu():
                         makeTextBox(textBoxes[activeTextBoxIndex].rect,textBoxes[activeTextBoxIndex].txt)
                 if event.type == pygame.KEYDOWN and activeTextBoxIndex >= 0:
                     newText = textBoxes[activeTextBoxIndex].txt
+                    if event.key == pygame.K_TAB or  event.key == pygame.K_RETURN:
+                        if activeTextBoxIndex+1 > len(textBoxes)-1 or activeTextBoxIndex < 0:
+                            activeTextBoxIndex = 0
+                        else:
+                            activeTextBoxIndex += 1
+                        makeTextBox(textBoxes[activeTextBoxIndex].rect,textBoxes[activeTextBoxIndex].txt)
+                        continue
                     if event.key == pygame.K_BACKSPACE:
                         newText = newText[:-1]
                     else:
@@ -105,6 +112,7 @@ def playerMenu():
                         playerMenuRunning = False
 
             pygame.display.update()
+
         if (nextMenu):
             errorMessage = ""
             numPlayers = 0
@@ -114,15 +122,15 @@ def playerMenu():
                     if textBoxes[i].txt != "":
                         hasPlayer = True
                         numPlayers+=1
-                else:
-                    if hasPlayer and textBoxes[i].txt == "":
-                        errorMessage = "Error: must include a color for each player"
+                elif hasPlayer and textBoxes[i].txt == "":
+                    errorMessage = "Error: must include a color for each player"
                     hasPlayer = False
 
             if errorMessage == "" and numPlayers < 2:
                 errorMessage = "Error: must have at least 2 players"
             if errorMessage == "":
                 canContinue = True
+                #TODO add players to list
                 print("next menu")
             else:
                 errorFont = pygame.font.SysFont(None, 30)
