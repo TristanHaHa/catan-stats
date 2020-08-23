@@ -40,16 +40,17 @@ def playerMenu():
     textBoxes = []
     textBoxesActivity = []
     for i in range(1,5):
-        rect1 = pygame.Rect(width/2 - (140+50),150+ 75*i,140,40)
-        rect2 = pygame.Rect(width/2 + 50,150+ 75*i,140,40)
+        rect1 = pygame.Rect(width/2 - (140+50),150+ 75*i,140,30)
+        rect2 = pygame.Rect(width/2 + 50,150+ 75*i,140,30)
+
         textBoxes.append(rect1)
         textBoxes.append(rect2)
         textBoxesActivity.append(False)
         textBoxesActivity.append(False)
 
         str = f"Player {i}"
-        makeButton(rect1,0,str,(255,255,255),(0,0,0))
-        makeButton(rect2,0,"Color",(255,255,255),(0,0,0))
+        makeTextLabel(rect1,str)
+        makeTextLabel(rect2,"Color")
 
     playerMenuRunning = True
     while playerMenuRunning:
@@ -75,6 +76,17 @@ def makeButton(rectangle,outlineWidth,txt="",bkgcolor=(128,128,128),txtcolor=(25
     font = pygame.font.SysFont(None, 40)
     text = font.render(txt, True, txtcolor)
     screen.blit(text, [x+(w/2 - text.get_width()/2),y+(h/2-text.get_height()/2),text.get_width(),text.get_height()])
+
+def makeTextLabel(rectangle,txt="",color=(255,255,255),txtcolor=(0,0,0)):
+    x = rectangle.left
+    y = rectangle.top
+    w = rectangle.w
+    h = rectangle.h
+
+    pygame.draw.rect(screen,color,[x,y,w,h])
+    font = pygame.font.SysFont(None, 30)
+    text = font.render(txt, True, txtcolor)
+    screen.blit(text, [x+5,y+(h/2-text.get_height()/2+2),text.get_width(),text.get_height()])
 
 def main():
     mainMenu()
