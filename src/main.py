@@ -38,11 +38,14 @@ def playerMenu():
     screen.blit(titleTxt2, [width/2-250,height/2 - 250, 500, 100])
 
     textBoxes = []
+    textBoxesActivity = []
     for i in range(1,5):
         rect1 = pygame.Rect(width/2 - (140+50),150+ 75*i,140,40)
         rect2 = pygame.Rect(width/2 + 50,150+ 75*i,140,40)
         textBoxes.append(rect1)
         textBoxes.append(rect2)
+        textBoxesActivity.append(False)
+        textBoxesActivity.append(False)
 
         str = f"Player {i}"
         makeButtonFromRect(rect1,0,str,(255,255,255),(0,0,0))
