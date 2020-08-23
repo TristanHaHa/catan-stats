@@ -38,9 +38,8 @@ def playerMenu():
     screen.blit(titleTxt1, [width/2-325,height/2 - 300, 500, 100])
     screen.blit(titleTxt2, [width/2-250,height/2 - 250, 500, 100])
 
-    textBoxes = []
-    textBoxesActivity = []
     TextBox = namedtuple("TextBox", "rect txt active")
+    textBoxes = []
     for i in range(1,5):
         rect1 = pygame.Rect(width/2 - (140+50),150+ 75*i,140,30)
         rect2 = pygame.Rect(width/2 + 50,150+ 75*i,140,30)
@@ -54,14 +53,25 @@ def playerMenu():
 
     playerMenuRunning = True
     while playerMenuRunning:
+        activeTextBoxIndex = -1
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
-                for rect in textBoxes:
-                    if rect.collidepoint(event.pos):
-                        playerMenuRunning = False
+                clickedOnBox = False
+                for i in range(len(textBoxes)):
+                    if textBoxes[i].rect.collidepoint(event.pos):
+                        clickedOnBox = True
+                        if activeTextBoxIndex >= 0:
+                            textBoxes[activeTextBoxIndex] = textBoxes[activeTextBoxIndex]._replace(active = False)
+                        textBoxes[i] = textBoxes[i]._replace(active = True)
+                        activeTextBoxIndex = i
+                if clickedOnBox == False and activeTextBoxIndex >= 0:
+                    textBoxes[activeTextBoxIndex] = textBoxes[activeTextBoxIndex]._replace(active = False)
+                    activeTextBoxIndex = -1
+                print(activeTextBoxIndex, flush=True)
+
         pygame.display.update()
 
 def makeButton(rectangle,outlineWidth,txt="",bkgcolor=(128,128,128),txtcolor=(255,255,255)):
