@@ -63,71 +63,76 @@ def playerMenu():
 
         textBoxes.append(TextBox(rect1,"",False))
         textBoxes.append(TextBox(rect2,"",False))
+    canContinue = False
+    while canContinue == False:
+        playerMenuRunning = True
+        nextMenu = True
+        activeTextBoxIndex = -1
+        while playerMenuRunning:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    exit()
 
-    playerMenuRunning = True
-    nextMenu = True
-    activeTextBoxIndex = -1
-    while playerMenuRunning:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                exit()
-
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                clickedOnBox = False
-                for i in range(len(textBoxes)):
-                    if textBoxes[i].rect.collidepoint(event.pos):
-                        clickedOnBox = True
-                        if activeTextBoxIndex >= 0:
-                            textBoxes[activeTextBoxIndex] = textBoxes[activeTextBoxIndex]._replace(active = False)
-                        textBoxes[i] = textBoxes[i]._replace(active = True)
-                        activeTextBoxIndex = i
-                if clickedOnBox == False:
-                    if activeTextBoxIndex >=0:
-                        activeTextBoxIndex = -1
-                else:
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    clickedOnBox = False
+                    for i in range(len(textBoxes)):
+                        if textBoxes[i].rect.collidepoint(event.pos):
+                            clickedOnBox = True
+                            if activeTextBoxIndex >= 0:
+                                textBoxes[activeTextBoxIndex] = textBoxes[activeTextBoxIndex]._replace(active = False)
+                            textBoxes[i] = textBoxes[i]._replace(active = True)
+                            activeTextBoxIndex = i
+                    if clickedOnBox == False:
+                        if activeTextBoxIndex >=0:
+                            activeTextBoxIndex = -1
+                    else:
+                        makeTextBox(textBoxes[activeTextBoxIndex].rect,textBoxes[activeTextBoxIndex].txt)
+                if event.type == pygame.KEYDOWN and activeTextBoxIndex >= 0:
+                    newText = textBoxes[activeTextBoxIndex].txt
+                    if event.key == pygame.K_BACKSPACE:
+                        newText = newText[:-1]
+                    else:
+                        newText += event.unicode
+                    textBoxes[activeTextBoxIndex] = textBoxes[activeTextBoxIndex]._replace(txt=newText)
                     makeTextBox(textBoxes[activeTextBoxIndex].rect,textBoxes[activeTextBoxIndex].txt)
-            if event.type == pygame.KEYDOWN and activeTextBoxIndex >= 0:
-                newText = textBoxes[activeTextBoxIndex].txt
-                if event.key == pygame.K_BACKSPACE:
-                    newText = newText[:-1]
+
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if backButton.collidepoint(event.pos):
+                        nextMenu = False
+                        playerMenuRunning = False
+                    if nextButton.collidepoint(event.pos):
+                        playerMenuRunning = False
+
+            pygame.display.update()
+        if (nextMenu):
+            errorMessage = ""
+            numPlayers = 0
+            hasPlayer = False
+            for i in range(len(textBoxes)):
+                if i%2 == 0:
+                    if textBoxes[i].txt != "":
+                        hasPlayer = True
+                        numPlayers+=1
                 else:
-                    newText += event.unicode
-                textBoxes[activeTextBoxIndex] = textBoxes[activeTextBoxIndex]._replace(txt=newText)
-                makeTextBox(textBoxes[activeTextBoxIndex].rect,textBoxes[activeTextBoxIndex].txt)
+                    if hasPlayer and textBoxes[i].txt == "":
+                        errorMessage = "Error: must include a color for each player"
+                    hasPlayer = False
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if backButton.collidepoint(event.pos):
-                    nextMenu = False
-                    playerMenuRunning = False
-                if nextButton.collidepoint(event.pos):
-                    playerMenuRunning = False
-
-        pygame.display.update()
-    if (nextMenu):
-        errorMessage = ""
-        numPlayers = 0
-        hasPlayer = False
-        for i in range(len(textBoxes)):
-            if i%2 == 0:
-                if textBoxes[i].txt != "":
-                    hasPlayer = True
-                    numPlayers+=1
+            if errorMessage == "" and numPlayers < 2:
+                errorMessage = "Error: must have at least 2 players"
+            if errorMessage == "":
+                canContinue = True
+                print("next menu")
             else:
-                if hasPlayer and textBox[i].txt == "":
-                    errorMessage = "Error: must include a color for each player"
-                hasPlayer = False
-
-        if errorMessage == "" and numPlayers < 2:
-            errorMessage = "Error: must have at least 2 players"
-        if errorMessage == "": print("next menu")
+                errorFont = pygame.font.SysFont(None, 30)
+                errorTxt = errorFont.render(errorMessage, True, (255,230,0))
+                temp = pygame.Rect(0,height*(3/4), width, 75)
+                makeButton(temp,0,"",(191,25,25))
+                screen.blit(errorTxt, [width/2-errorTxt.get_width()/2,height*(3/4), 300, 7])
         else:
-            errorFont = pygame.font.SysFont(None, 30)
-            errorTxt = errorFont.render(errorMessage, True, (255,230,0))
-            screen.blit(errorTxt, [nextButtonX-(margin+errorTxt.get_width()),height-(margin+errorTxt.get_height()), 300, 100])
-            print(errorMessage)
-    else:
-        mainMenu()
+            canContinue = True
+            mainMenu()
 
 def makeButton(rectangle,outlineWidth,txt="",bkgcolor=(128,128,128),txtcolor=(255,255,255)):
     x = rectangle.left
