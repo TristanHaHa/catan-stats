@@ -1,5 +1,7 @@
-import pygame, random, sys
+import pygame, sys, time
 from collections import namedtuple
+from random import seed
+from random import randint
 
 def mainMenu():
     buttonWidth = 130
@@ -139,7 +141,7 @@ def playerMenu():
                 errorMessage = "Error: must have at least 2 players"
             if errorMessage == "":
                 canContinue = True
-                print(players)
+                gameMenu(players)
             else:
                 errorFont = pygame.font.SysFont(None, 30)
                 errorTxt = errorFont.render(errorMessage, True, (255,230,0))
@@ -149,6 +151,44 @@ def playerMenu():
         else:
             canContinue = True
             mainMenu()
+
+def gameMenu(players):
+    screen.fill((191,25,25))
+
+    buttonWidth = 100
+    buttonHeight = 40
+    outlineWidth = 4
+    margin = 35
+    rollButtonX = margin
+    rollButtonY = margin + buttonHeight
+
+    rollButton = pygame.Rect(rollButtonX,rollButtonY,buttonWidth,buttonHeight)
+    makeButton(rollButton,outlineWidth,"Roll")
+
+    font = pygame.font.SysFont(None, 100)
+    rollTxt = font.render("0", True, (255,230,0))
+    rollTxtBkgd = pygame.Rect(margin+(buttonWidth/2 - rollTxt.get_width()/2),rollButtonY/2 - rollTxt.get_height()/2 + margin/10,rollTxt.get_width(), rollTxt.get_height())
+    makeButton(rollTxtBkgd,0,"",(191,25,25))
+    makeButton(rollButton,outlineWidth,"Roll")
+    screen.blit(rollTxt, [margin+(buttonWidth/2 - rollTxt.get_width()/2),rollButtonY/2 - rollTxt.get_height()/2 + margin/10,rollTxt.get_width(), rollTxt.get_height()])
+
+    nums = []
+    gameMenuRunning = True
+    while gameMenuRunning:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if rollButton.collidepoint(event.pos):
+                    roll = rollDice()
+                    nums.append(roll)
+                    rollTxt = font.render(f"{roll}", True, (255,230,0))
+                    rollTxtBkgd = pygame.Rect(margin+(buttonWidth/2 - rollTxt.get_width()),rollButtonY/2 - rollTxt.get_height()/2 + margin/10,rollTxt.get_width()*2, rollTxt.get_height())
+                    makeButton(rollTxtBkgd,0,"",(191,25,25))
+                    makeButton(rollButton,outlineWidth,"Roll")
+                    screen.blit(rollTxt, [margin+(buttonWidth/2 - rollTxt.get_width()/2),rollButtonY/2 - rollTxt.get_height()/2 + margin/10,rollTxt.get_width(), rollTxt.get_height()])
+        pygame.display.update()
 
 def makeButton(rectangle,outlineWidth,txt="",bkgcolor=(128,128,128),txtcolor=(255,255,255)):
     x = rectangle.left
@@ -174,9 +214,17 @@ def makeTextBox(rectangle,txt="",color=(255,255,255),txtcolor=(0,0,0)):
     text = font.render(txt, True, txtcolor)
     screen.blit(text, [x+5,y+(h/2-text.get_height()/2+2),text.get_width(),text.get_height()])
 
+def rollDice():
+    seed()
+    die1 = randint(1,6)
+    die2 = randint(1,6)
+    return die1+die2
+
 def main():
-    mainMenu()
+    #mainMenu()
     #playerMenu()
+    Player = namedtuple("Player", "name color")
+    gameMenu([Player("Tristan","Red"),Player("Tristanity","Blue")])
 
 pygame.init()
 size = width, height = 700,700
