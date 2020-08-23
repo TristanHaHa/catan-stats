@@ -44,16 +44,15 @@ def playerMenu():
         rect1 = pygame.Rect(width/2 - (140+50),150+ 75*i,140,30)
         rect2 = pygame.Rect(width/2 + 50,150+ 75*i,140,30)
 
-        str = f"Player {i}"
-        makeTextBox(rect1,str)
+        makeTextBox(rect1,f"Player {i}")
         makeTextBox(rect2,"Color")
 
-        textBoxes.append(TextBox(rect1,str,False))
-        textBoxes.append(TextBox(rect2,"Color",False))
+        textBoxes.append(TextBox(rect1,"",False))
+        textBoxes.append(TextBox(rect2,"",False))
 
     playerMenuRunning = True
+    activeTextBoxIndex = -1
     while playerMenuRunning:
-        activeTextBoxIndex = -1
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -68,9 +67,16 @@ def playerMenu():
                         textBoxes[i] = textBoxes[i]._replace(active = True)
                         activeTextBoxIndex = i
                 if clickedOnBox == False and activeTextBoxIndex >= 0:
-                    textBoxes[activeTextBoxIndex] = textBoxes[activeTextBoxIndex]._replace(active = False)
                     activeTextBoxIndex = -1
-                print(activeTextBoxIndex, flush=True)
+            if event.type == pygame.KEYDOWN and activeTextBoxIndex >= 0:
+                newText = textBoxes[activeTextBoxIndex].txt
+                if event.key == pygame.K_BACKSPACE:
+                    newText = newText[:-1]
+                else:
+                    newText += event.unicode
+                textBoxes[activeTextBoxIndex] = textBoxes[activeTextBoxIndex]._replace(txt=newText)
+                print(newText, flush=True)
+
 
         pygame.display.update()
 
