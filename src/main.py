@@ -32,6 +32,20 @@ def mainMenu():
 def playerMenu():
     screen.fill((191,25,25))
 
+    buttonWidth = 130
+    buttonHeight = 50
+    outlineWidth = 4
+    margin = 25
+    backButtonX = margin
+    backButtonY = height - (margin + buttonHeight)
+    nextButtonX = width - (margin + buttonWidth)
+    nextButtonY = backButtonY
+
+    backButton = pygame.Rect(backButtonX,backButtonY,buttonWidth,buttonHeight)
+    nextButton = pygame.Rect(nextButtonX,nextButtonY,buttonWidth,buttonHeight)
+    makeButton(backButton,outlineWidth,"Back")
+    makeButton(nextButton,outlineWidth,"Next")
+
     titleFont = pygame.font.SysFont(None, 60)
     titleTxt1 = titleFont.render("Please enter the players' names", True, (255,230,0))
     titleTxt2 = titleFont.render("and colors in turn order", True, (255,230,0))
@@ -51,12 +65,14 @@ def playerMenu():
         textBoxes.append(TextBox(rect2,"",False))
 
     playerMenuRunning = True
+    nextMenu = True
     activeTextBoxIndex = -1
     while playerMenuRunning:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
+
             if event.type == pygame.MOUSEBUTTONDOWN:
                 clickedOnBox = False
                 for i in range(len(textBoxes)):
@@ -79,7 +95,19 @@ def playerMenu():
                     newText += event.unicode
                 textBoxes[activeTextBoxIndex] = textBoxes[activeTextBoxIndex]._replace(txt=newText)
                 makeTextBox(textBoxes[activeTextBoxIndex].rect,textBoxes[activeTextBoxIndex].txt)
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if backButton.collidepoint(event.pos):
+                    nextMenu = False
+                    playerMenuRunning = False
+                if nextButton.collidepoint(event.pos):
+                    playerMenuRunning = False
+
         pygame.display.update()
+    if (nextMenu):
+        print("next menu")
+    else:
+        mainMenu()
 
 def makeButton(rectangle,outlineWidth,txt="",bkgcolor=(128,128,128),txtcolor=(255,255,255)):
     x = rectangle.left
