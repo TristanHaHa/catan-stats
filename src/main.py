@@ -1,6 +1,6 @@
 import pygame, random, sys
 from collections import namedtuple
-#TODO commit enter and tab features
+
 def mainMenu():
     buttonWidth = 130
     buttonHeight = 50
@@ -114,24 +114,32 @@ def playerMenu():
             pygame.display.update()
 
         if (nextMenu):
+            Player = namedtuple("Player", "name color")
+            players = []
             errorMessage = ""
             numPlayers = 0
             hasPlayer = False
             for i in range(len(textBoxes)):
+                name = ""
                 if i%2 == 0:
                     if textBoxes[i].txt != "":
                         hasPlayer = True
                         numPlayers+=1
-                elif hasPlayer and textBoxes[i].txt == "":
-                    errorMessage = "Error: must include a color for each player"
-                    hasPlayer = False
+                        name = textBoxes[i].txt
+                    else:
+                        break
+                elif hasPlayer:
+                    if textBoxes[i].txt == "":
+                        hasPlayer = False
+                        errorMessage = "Error: must include a color for each player"
+                    else:
+                        players.append(Player(name,textBoxes[i].txt))
 
             if errorMessage == "" and numPlayers < 2:
                 errorMessage = "Error: must have at least 2 players"
             if errorMessage == "":
                 canContinue = True
-                #TODO add players to list
-                print("next menu")
+                print(players)
             else:
                 errorFont = pygame.font.SysFont(None, 30)
                 errorTxt = errorFont.render(errorMessage, True, (255,230,0))
@@ -174,7 +182,4 @@ pygame.init()
 size = width, height = 700,700
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("Catan Stats")
-
-Player = namedtuple("Player", "name color")
-players = []
 main()
