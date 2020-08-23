@@ -66,8 +66,11 @@ def playerMenu():
                             textBoxes[activeTextBoxIndex] = textBoxes[activeTextBoxIndex]._replace(active = False)
                         textBoxes[i] = textBoxes[i]._replace(active = True)
                         activeTextBoxIndex = i
-                if clickedOnBox == False and activeTextBoxIndex >= 0:
-                    activeTextBoxIndex = -1
+                if clickedOnBox == False:
+                    if activeTextBoxIndex >=0:
+                        activeTextBoxIndex = -1
+                else:
+                    makeTextBox(textBoxes[activeTextBoxIndex].rect,textBoxes[activeTextBoxIndex].txt)
             if event.type == pygame.KEYDOWN and activeTextBoxIndex >= 0:
                 newText = textBoxes[activeTextBoxIndex].txt
                 if event.key == pygame.K_BACKSPACE:
@@ -75,9 +78,7 @@ def playerMenu():
                 else:
                     newText += event.unicode
                 textBoxes[activeTextBoxIndex] = textBoxes[activeTextBoxIndex]._replace(txt=newText)
-                print(newText, flush=True)
-
-
+                makeTextBox(textBoxes[activeTextBoxIndex].rect,textBoxes[activeTextBoxIndex].txt)
         pygame.display.update()
 
 def makeButton(rectangle,outlineWidth,txt="",bkgcolor=(128,128,128),txtcolor=(255,255,255)):
