@@ -289,8 +289,8 @@ def drawGraph(dict,x,y,w,h,total):
         sideLabel = font.render(f"{i*10}", True, (0,0,0))
         screen.blit(sideLabel, [x-(5+sideLabel.get_width()),y-i*(h/10)-5,sideLabel.get_width(),sideLabel.get_height()])
     for i in range(numLines):
-        #midLine = pygame.Rect(0,height/2,width,thickness)
-        #makeButton(midLine,0,"",(0,0,0))
+        midLine = pygame.Rect(0,height/2,width,thickness)
+        makeButton(midLine,0,"",(0,0,0))
         xLine = pygame.Rect(x+i*(w/(numLines-1)),y-h,thickness,h)
         xLines.append(xLine)
         makeButton(xLine,0,"",(0,0,0))
@@ -299,13 +299,17 @@ def drawGraph(dict,x,y,w,h,total):
             xLines.append(xLine)
             makeButton(xLine,0,"",(0,0,0))
         else:#27p = 10 percent, 37p = 1 die
+            barWidth = 25
             if len(total) == 0:
                 percent = 0
             else:
                 percent = dict[i+1]/len(total)
-            bar = pygame.Rect(x+i*(w/(numLines-1))-9,y-percent*270,18,percent*270)
+            bar = pygame.Rect(x+i*(w/(numLines-1))-barWidth/2,y-percent*275,barWidth,percent*275)
             makeButton(bar,0,"",(0,0,0))
-            print(bar,percent,flush=True)
+
+            if dict[i+1] > 0:
+                numLabel = font.render(f"{dict[i+1]}",True,(255,255,255))
+                screen.blit(numLabel, [x+i*(w/(numLines-1))-numLabel.get_width()/2,y-percent*270,numLabel.get_width(),numLabel.get_height()])
         if not i >= numLines-2:
             bottomLabel = font.render(f"{i+2}", True, (0,0,0))
             screen.blit(bottomLabel, [x+(i+1)*(w/(numLines-1))-5,y+(5),bottomLabel.get_width(),bottomLabel.get_height()])
