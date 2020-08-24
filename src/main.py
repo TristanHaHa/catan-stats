@@ -54,7 +54,6 @@ def playerMenu():
     screen.blit(titleTxt1, [width/2-325,height/2 - 300, 500, 100])
     screen.blit(titleTxt2, [width/2-250,height/2 - 250, 500, 100])
 
-    TextBox = namedtuple("TextBox", "rect txt active")
     textBoxes = []
     for i in range(1,5):
         rect1 = pygame.Rect(width/2 - (140+50),150+ 75*i,140,30)
@@ -160,25 +159,19 @@ def gameMenu(players):
     outlineWidth = 4
     margin = 35
     rollButtonX = margin
-    rollButtonY = margin + buttonHeight
+    rollButtonY = height - (margin + buttonHeight)
 
     rollButton = pygame.Rect(rollButtonX,rollButtonY,buttonWidth,buttonHeight)
     makeButton(rollButton,outlineWidth,"Roll")
 
-    font = pygame.font.SysFont(None, 100)
-    rollTxt = font.render("0", True, (255,230,0))
-    rollTxtBkgd = pygame.Rect(margin+(buttonWidth/2 - rollTxt.get_width()/2),rollButtonY/2 - rollTxt.get_height()/2 + margin/10,rollTxt.get_width(), rollTxt.get_height())
-    makeButton(rollTxtBkgd,0,"",(191,25,25))
-    makeButton(rollButton,outlineWidth,"Roll")
-    screen.blit(rollTxt, [margin+(buttonWidth/2 - rollTxt.get_width()/2),rollButtonY/2 - rollTxt.get_height()/2 + margin/10,rollTxt.get_width(), rollTxt.get_height()])
-
     def displayRoll(roll=0):
         rollTxt = font.render(f"{roll}", True, (255,230,0))
-        rollTxtBkgd = pygame.Rect(margin+(buttonWidth/2 - rollTxt.get_width()),rollButtonY/2 - rollTxt.get_height()/2 + margin/10,rollTxt.get_width()*2, rollTxt.get_height())
+        rollTxtBkgd = pygame.Rect(margin,rollButtonY - rollTxt.get_height(),rollTxt.get_width()*3, rollTxt.get_height())
         makeButton(rollTxtBkgd,0,"",(191,25,25))
         makeButton(rollButton,outlineWidth,"Roll")
-        screen.blit(rollTxt, [margin+(buttonWidth/2 - rollTxt.get_width()/2),rollButtonY/2 - rollTxt.get_height()/2 + margin/10,rollTxt.get_width(), rollTxt.get_height()])
+        screen.blit(rollTxt, [margin+(buttonWidth/2 - rollTxt.get_width()/2),rollButtonY - rollTxt.get_height(),rollTxt.get_width(), rollTxt.get_height()])
 
+    font = pygame.font.SysFont(None, 100)
     displayRoll()
 
     nums = []
@@ -199,7 +192,7 @@ def gameMenu(players):
         print(f"Out of {len(nums)} rolls:")
         for i in range(2,len(numsDict)+1):
             prob = 100*(numsDict[i]/len(nums))
-            print(f"{i}: {prob}%", flush=True  )
+            print(f"{i}: {prob:.2f}%", flush=True  )
     def updateRolls(roll):
         nums.append(roll)
         numsDict[roll] += 1
@@ -207,7 +200,6 @@ def gameMenu(players):
     gameMenuRunning = True
     test = False
     while gameMenuRunning:
-        str = ""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -262,4 +254,5 @@ pygame.init()
 size = width, height = 700,700
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("Catan Stats")
+TextBox = namedtuple("TextBox", "rect txt active")
 main()
