@@ -145,8 +145,8 @@ def playerMenu():
             else:
                 errorFont = pygame.font.SysFont(None, 30)
                 errorTxt = errorFont.render(errorMessage, True, (255,230,0))
-                temp = pygame.Rect(0,height*(3/4), width, 75)
-                makeButton(temp,0,"",(191,25,25))
+                errorBkgd = pygame.Rect(0,height*(3/4), width, 75)
+                makeButton(errorBkgd,0,"",(191,25,25))
                 screen.blit(errorTxt, [width/2-errorTxt.get_width()/2,height*(3/4), 300, 7])
         else:
             canContinue = True
@@ -182,20 +182,44 @@ def gameMenu(players):
     displayRoll()
 
     nums = []
+    numsDict = {
+        2:0,
+        3:0,
+        4:0,
+        5:0,
+        6:0,
+        7:0,
+        8:0,
+        9:0,
+        10:0,
+        11:0,
+        12:0
+    }
+    def showProb():
+        print(f"Out of {len(nums)} rolls:")
+        for i in range(2,len(numsDict)+1):
+            prob = 100*(numsDict[i]/len(nums))
+            print(f"{i}: {prob}%", flush=True  )
+    def updateRolls(roll):
+        nums.append(roll)
+        numsDict[roll] += 1
+        showProb()
     gameMenuRunning = True
+    test = False
     while gameMenuRunning:
+        str = ""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if rollButton.collidepoint(event.pos):
-                    for i in range(10):
+                    for i in range(15):
                         roll = rollDice()
                         displayRoll(roll)
                         pygame.display.update()
                         pygame.time.delay(20)
-                    nums.append(roll)
+                    updateRolls(roll)
         pygame.display.update()
 
 def makeButton(rectangle,outlineWidth,txt="",bkgcolor=(128,128,128),txtcolor=(255,255,255)):
