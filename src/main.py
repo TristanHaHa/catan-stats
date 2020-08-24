@@ -174,6 +174,10 @@ def gameMenu(players):
     font = pygame.font.SysFont(None, 100)
     displayRoll()
 
+    manualRollRect = pygame.Rect(rollButtonX,rollButtonY - 110,buttonWidth,buttonHeight)
+    manualRollTextBox = TextBox(manualRollRect,"",False)
+    makeTextBox(manualRollRect,"Input")
+
     nums = []
     numsDict = {
         2:0,
@@ -198,7 +202,6 @@ def gameMenu(players):
         numsDict[roll] += 1
         showProb()
     gameMenuRunning = True
-    test = False
     while gameMenuRunning:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -212,6 +215,31 @@ def gameMenu(players):
                         pygame.display.update()
                         pygame.time.delay(20)
                     updateRolls(roll)
+                elif manualRollRect.collidepoint(event.pos):
+                    manualRollTextBox = manualRollTextBox._replace(active=True)
+                    makeTextBox(manualRollRect,manualRollTextBox.txt)
+                else:
+                    manualRollTextBox = manualRollTextBox._replace(active=False)
+            if manualRollTextBox.active:
+                if event.type == pygame.KEYDOWN:
+                    newText = manualRollTextBox.txt
+                    if event.key == pygame.K_RETURN:
+                        roll = manualRollTextBox.txt
+                        if 2 <= int(roll) <= 12:
+                            displayRoll(roll)
+                            updateRolls(int(roll))
+                            newText = ""
+                        else:
+                            manualRollTextBox = manualRollTextBox._replace(txt="")
+                            makeTextBox(manualRollRect,"ERROR")
+                            continue
+                    elif event.key == pygame.K_BACKSPACE:
+                        newText = newText[:-1]
+                    else:
+                        newText += event.unicode
+                    manualRollTextBox = manualRollTextBox._replace(txt=newText)
+                    makeTextBox(manualRollRect,newText)
+
         pygame.display.update()
 
 def makeButton(rectangle,outlineWidth,txt="",bkgcolor=(128,128,128),txtcolor=(255,255,255)):
