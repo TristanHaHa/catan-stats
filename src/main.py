@@ -157,8 +157,8 @@ def gameMenu(players):
     buttonWidth = 100
     buttonHeight = 40
     outlineWidth = 4
-    margin = 100
-    rollButtonX = margin/3
+    margin = 150
+    rollButtonX = 33
     rollButtonY = height - (margin + buttonHeight)
 
     rollButton = pygame.Rect(rollButtonX,rollButtonY,buttonWidth,buttonHeight)
@@ -197,18 +197,40 @@ def gameMenu(players):
         for i in range(2,len(numsDict)+1):
             prob = 100*(numsDict[i]/len(nums))
             print(f"{i}: {prob:.2f}%", flush=True  )
+    def updateGraph():
+        drawGraph(numsDict,width*(2/7),height-50,1.37*width/2,0.8*height/2,nums)
     def updateRolls(roll):
         nums.append(roll)
         numsDict[roll] += 1
         showProb()
-        drawGraph(numsDict,width*(2/7),height-50,1.37*width/2,0.8*height/2,nums)
-    drawGraph(numsDict,width*(2/7),height-50,1.37*width/2,0.8*height/2,nums)
+        updateGraph()
+    updateGraph()
     gameMenuRunning = True
+    barPopup = False
     while gameMenuRunning:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
+            for bar in diceBars:
+                if bar.rect.collidepoint(pygame.mouse.get_pos()):
+                    barPopup = True
+                    updateGraph()
+                    barXLen = 50
+                    barYLen = 30
+                    barX =pygame.mouse.get_pos()[0]-barXLen
+                    barY =pygame.mouse.get_pos()[1]-barYLen
+                    tempRect = pygame.Rect(barX,barY,barXLen,barYLen)
+                    makeButton(tempRect,3,"",(255,255,255))
+                    screen.blit(bar.label, [barX+barXLen/2-bar.label.get_width()/2,barY+bar.label.get_height()/2,bar.label.get_width(),bar.label.get_height()])
+                    #print(pygame.mouse.get_pos(),flush=True)
+                    break
+            if event.type == pygame.MOUSEMOTION:
+                #print(diceBars,flush=True)
+                if barPopup:
+                    if not bar.rect.collidepoint(pygame.mouse.get_pos()):
+                        barPopup = False
+                        updateGraph()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if rollButton.collidepoint(event.pos):
                     for i in range(15):
@@ -218,6 +240,7 @@ def gameMenu(players):
                         pygame.time.delay(20)
                     updateRolls(roll)
                     makeTextBox(manualRollRect,str(roll))
+                    print(nums,len(diceBars),flush = True)
                 elif manualRollRect.collidepoint(event.pos):
                     manualRollTextBox = manualRollTextBox._replace(active=True)
                     makeTextBox(manualRollRect,manualRollTextBox.txt)
@@ -276,11 +299,13 @@ def rollDice():
     return die1+die2
 
 def drawGraph(dict,x,y,w,h,total):
+    global diceBars
     yLines = []
     xLines = []
+    diceBars.clear()
     thickness = 2
     numLines = 13
-    makeButton(pygame.Rect(x-50,y-h-20,w+100,h+40),0,"",(191,25,25))
+    makeButton(pygame.Rect(x-50,y-h-50,w+100,h+100),0,"",(191,25,25))
     font = pygame.font.SysFont(None, 25)
     for i in range(101):
         rect = pygame.Rect(x,y-i*(h/100),w,thickness)
@@ -305,17 +330,22 @@ def drawGraph(dict,x,y,w,h,total):
             else:
                 percent = dict[i+1]/len(total)
                 yValue = yLines[math.floor(percent*100)].top
-            print(percent,flush=True)
             bar = pygame.Rect(x+i*(w/(numLines-1))-barWidth/2,yValue,barWidth,yLines[0].bottom-yValue)
             makeButton(bar,0,"",(0,0,0))
+
 
             bottomBarHeight = 2
             bottomBar = pygame.Rect(x+i*(w/(numLines-1))-barWidth/2,y-bottomBarHeight,barWidth,bottomBarHeight)
             makeButton(bottomBar,0,"",(0,0,0))
 
+
             if dict[i+1] > 0:
                 numLabel = font.render(f"{dict[i+1]}",True,(255,255,255))
                 screen.blit(numLabel, [x+i*(w/(numLines-1))-numLabel.get_width()/2,y-percent*270,numLabel.get_width(),numLabel.get_height()])
+
+            hoverFont = pygame.font.SysFont(None, 20)
+            diceBars.append(Bar(bar,hoverFont.render(f"{percent*100:.2f}%",True,(0,0,0)),i+1))
+
         if not i >= numLines-2:
             bottomLabel = font.render(f"{i+2}", True, (0,0,0))
             screen.blit(bottomLabel, [x+(i+1)*(w/(numLines-1))-5,y+(5),bottomLabel.get_width(),bottomLabel.get_height()])
@@ -332,4 +362,6 @@ size = width, height = 700,700
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("Catan Stats")
 TextBox = namedtuple("TextBox", "rect txt active")
+Bar = namedtuple("Bar", "rect label diceNum")
+diceBars=[]
 main()
