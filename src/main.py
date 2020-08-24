@@ -1,4 +1,4 @@
-import pygame, sys, time
+import pygame, sys, time, math
 from collections import namedtuple
 from random import seed
 from random import randint
@@ -280,11 +280,13 @@ def drawGraph(dict,x,y,w,h,total):
     xLines = []
     thickness = 2
     numLines = 13
+    makeButton(pygame.Rect(x-50,y-h-20,w+100,h+40),0,"",(191,25,25))
     font = pygame.font.SysFont(None, 25)
-    makeButton(pygame.Rect(x,y-h,w,h),0,"",(191,25,25))
+    for i in range(101):
+        rect = pygame.Rect(x,y-i*(h/100),w,thickness)
+        yLines.append(rect)
     for i in range(11):
         yLine = pygame.Rect(x,y-i*(h/10),w,thickness)
-        yLines.append(yLine)
         makeButton(yLine,0,"",(0,0,0))
         sideLabel = font.render(f"{i*10}%", True, (0,0,0))
         screen.blit(sideLabel, [x-(5+sideLabel.get_width()),y-i*(h/10)-5,sideLabel.get_width(),sideLabel.get_height()])
@@ -299,9 +301,12 @@ def drawGraph(dict,x,y,w,h,total):
             barWidth = 25
             if len(total) == 0:
                 percent = 0
+                yValue = y
             else:
                 percent = dict[i+1]/len(total)
-            bar = pygame.Rect(x+i*(w/(numLines-1))-barWidth/2,y-percent*275,barWidth,percent*275)
+                yValue = yLines[math.floor(percent*100)].top
+            print(percent,flush=True)
+            bar = pygame.Rect(x+i*(w/(numLines-1))-barWidth/2,yValue,barWidth,yLines[0].bottom-yValue)
             makeButton(bar,0,"",(0,0,0))
 
             bottomBarHeight = 2
@@ -314,8 +319,6 @@ def drawGraph(dict,x,y,w,h,total):
         if not i >= numLines-2:
             bottomLabel = font.render(f"{i+2}", True, (0,0,0))
             screen.blit(bottomLabel, [x+(i+1)*(w/(numLines-1))-5,y+(5),bottomLabel.get_width(),bottomLabel.get_height()])
-
-    #for item in dict:
 
 
 def main():
