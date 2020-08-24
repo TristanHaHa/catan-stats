@@ -174,7 +174,7 @@ def gameMenu(players):
     font = pygame.font.SysFont(None, 100)
     displayRoll()
 
-    manualRollRect = pygame.Rect(rollButtonX,rollButtonY - 110,buttonWidth,buttonHeight)
+    manualRollRect = pygame.Rect(rollButtonX,rollButtonY - 115,buttonWidth,buttonHeight)
     manualRollTextBox = TextBox(manualRollRect,"",False)
     makeTextBox(manualRollRect,"Input")
 
@@ -201,6 +201,8 @@ def gameMenu(players):
         nums.append(roll)
         numsDict[roll] += 1
         showProb()
+        drawGraph(numsDict,width*(2/7),height-50,1.3*width/2,0.8*height/2)
+    drawGraph(numsDict,width*(2/7),height-50,1.3*width/2,0.8*height/2)
     gameMenuRunning = True
     while gameMenuRunning:
         for event in pygame.event.get():
@@ -271,6 +273,25 @@ def rollDice():
     die1 = randint(1,6)
     die2 = randint(1,6)
     return die1+die2
+
+def drawGraph(dict,x,y,w,h):
+    yLines = []
+    xLines = []
+    thickness = 2
+    numLines = 13
+    for i in range(numLines):
+        #midLine = pygame.Rect(0,height/2,width,thickness)
+        #makeButton(midLine,0,"",(0,0,0))
+        yLine = pygame.Rect(x,y-i*(h/(numLines-1)),w,thickness)
+        print(yLine,flush=True)
+        xLine = pygame.Rect(x+i*(w/(numLines-1)),y-h,thickness,h)
+        yLines.append(yLine)
+        xLines.append(xLine)
+        makeButton(yLine,0,"",(0,0,0))
+        makeButton(xLine,0,"",(0,0,0))
+        print(xLine,flush=True)
+    #for item in dict:
+
 
 def main():
     #mainMenu()
