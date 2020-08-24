@@ -228,7 +228,7 @@ def gameMenu(players):
                     newText = manualRollTextBox.txt
                     if event.key == pygame.K_RETURN:
                         roll = manualRollTextBox.txt
-                        if 2 <= int(roll) <= 12:
+                        if roll in ["2","3","4","5","6","7","8","9","10","11","12"]:
                             displayRoll(roll)
                             updateRolls(int(roll))
                             newText = ""
@@ -281,19 +281,16 @@ def drawGraph(dict,x,y,w,h,total):
     thickness = 2
     numLines = 13
     font = pygame.font.SysFont(None, 25)
-    makeButton(pygame.Rect(x,y-h,w,h),0,"",(255,255,255))#(191,25,25))
+    makeButton(pygame.Rect(x,y-h,w,h),0,"",(191,25,25))
     for i in range(11):
         yLine = pygame.Rect(x,y-i*(h/10),w,thickness)
         yLines.append(yLine)
         makeButton(yLine,0,"",(0,0,0))
-        sideLabel = font.render(f"{i*10}", True, (0,0,0))
+        sideLabel = font.render(f"{i*10}%", True, (0,0,0))
         screen.blit(sideLabel, [x-(5+sideLabel.get_width()),y-i*(h/10)-5,sideLabel.get_width(),sideLabel.get_height()])
     for i in range(numLines):
         midLine = pygame.Rect(0,height/2,width,thickness)
         makeButton(midLine,0,"",(0,0,0))
-        xLine = pygame.Rect(x+i*(w/(numLines-1)),y-h,thickness,h)
-        xLines.append(xLine)
-        makeButton(xLine,0,"",(0,0,0))
         if i == 0 or i == numLines-1:
             xLine = pygame.Rect(x+i*(w/(numLines-1)),y-h,thickness,h)
             xLines.append(xLine)
@@ -306,6 +303,10 @@ def drawGraph(dict,x,y,w,h,total):
                 percent = dict[i+1]/len(total)
             bar = pygame.Rect(x+i*(w/(numLines-1))-barWidth/2,y-percent*275,barWidth,percent*275)
             makeButton(bar,0,"",(0,0,0))
+
+            bottomBarHeight = 2
+            bottomBar = pygame.Rect(x+i*(w/(numLines-1))-barWidth/2,y-bottomBarHeight,barWidth,bottomBarHeight)
+            makeButton(bottomBar,0,"",(0,0,0))
 
             if dict[i+1] > 0:
                 numLabel = font.render(f"{dict[i+1]}",True,(255,255,255))
