@@ -268,9 +268,10 @@ def gameMenu(players):
                         displayRoll(nums[index])
                         updateButtons()
                 elif nextButton.collidepoint(event.pos):
-                    index+=1
-                    displayRoll(nums[index])
-                    updateButtons()
+                    if 0 <= index <+ len(nums)-1:
+                        index+=1
+                        displayRoll(nums[index])
+                        updateButtons()
                 else:
                     manualRollTextBox = manualRollTextBox._replace(active=False)
             if manualRollTextBox.active:
