@@ -141,7 +141,7 @@ def playerMenu():
                         hasPlayer = False
                         errorMessage = "Error: must include a color for each player"
                     else:
-                        players.append(Player(name,textBoxes[i].txt))
+                        players.append(Player(name,textBoxes[i].txt,0,0))
 
             if errorMessage == "" and numPlayers < 2:
                 errorMessage = "Error: must have at least 2 players"
@@ -176,6 +176,12 @@ def gameMenu(players):
 
     nextButton = pygame.Rect(rollButtonX,previousButton.top+buttonHeight+20,buttonWidth,buttonHeight)
 
+    startButton = pygame.Rect(rollButtonX,150,buttonWidth,buttonHeight)
+    makeButton(startButton,outlineWidth,"Start")
+
+    stopButton = pygame.Rect(rollButtonX,startButton.bottom+20,buttonWidth,buttonHeight)
+    makeButton(stopButton,outlineWidth,"Stop")
+
     font = pygame.font.SysFont(None, 100)
 
     manualRollRect = pygame.Rect(rollButtonX-5,rollButtonY - 115,buttonWidth+10,buttonHeight)
@@ -200,7 +206,11 @@ def gameMenu(players):
     index = -1 #current roll index
     playerTurn = 0 # current player turn
     gameMenuRunning = True
+    timerRunning = False
     barPopup = False
+    seconds = 0
+    startTick=pygame.time.get_ticks()
+    pauseTick = 0
 
     def rollDice():
         seed()
@@ -239,18 +249,25 @@ def gameMenu(players):
         turnTxt = playerFont.render("turn", True, BLACK)
         playerTxtBkgd = pygame.Rect(0,4,180,playerTxt.get_height()+turnTxt.get_height())
         makeButton(playerTxtBkgd,0,"",RED)
-        screen.blit(playerTxt,[topGraphMargin-playerTxt.get_width()/2,5,playerTxt.get_width(),playerTxt.get_height()])
-        screen.blit(turnTxt,[topGraphMargin-turnTxt.get_width()/2,playerTxt.get_height(),turnTxt.get_width(),turnTxt.get_height()])
-    def updateTimer():
-        timerTxt = font.render("0:00", True, YELLOW)
-        timerTxtBkgd = pygame.Rect(0,height/4-timerTxt.get_height()/2,timerTxt.get_width(), timerTxt.get_height())
+        screen.blit(playerTxt,[(rollButtonX+buttonWidth/2)-playerTxt.get_width()/2,5,playerTxt.get_width(),playerTxt.get_height()])
+        screen.blit(turnTxt,[(rollButtonX+buttonWidth/2)-turnTxt.get_width()/2,playerTxt.get_height(),turnTxt.get_width(),turnTxt.get_height()])
+    def updateTimer(seconds=0):
+        minutes = int(seconds/60)
+        tensPlace = int((seconds - minutes*60)/10)
+        onesPlace = seconds%10
+        timeFormatted = f"{minutes}:{tensPlace}{onesPlace}"
+        timerTxt = font.render(timeFormatted, True, YELLOW)
+        timerTxtBkgd = pygame.Rect(0,topGraphMargin,timerTxt.get_width()+50, timerTxt.get_height())
         makeButton(timerTxtBkgd,0,"",(191,25,25))
-        screen.blit(timerTxt, [topGraphMargin-timerTxt.get_width()/2,timerTxtBkgd.top,timerTxt.get_width(), timerTxt.get_height()])
+        screen.blit(timerTxt, [(rollButtonX+buttonWidth/2)-timerTxt.get_width()/2,timerTxtBkgd.top,timerTxt.get_width(), timerTxt.get_height()])
     updateTimer()
     updatePlayers()
     displayRoll()
     updateGraph()
     while gameMenuRunning:
+        if timerRunning:
+            seconds = int( (pygame.time.get_ticks()-startTick) /1000)
+            updateTimer(seconds)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -280,8 +297,6 @@ def gameMenu(players):
                         pygame.display.update()
                         pygame.time.delay(20)
                     updateRolls(roll)
-                    playerTurn = (playerTurn+1)%len(players)
-                    updatePlayers()
                     index+=1
                     if len(nums) == 1:
                         makeTextBox(manualRollRect,"1 roll")
@@ -301,6 +316,22 @@ def gameMenu(players):
                         displayRoll(nums[index])
                         updateButtons()
                         updatePlayers()
+                elif startButton.collidepoint(event.pos):
+                    if timerRunning:
+                        timerRunning = False
+                        pauseTick=pygame.time.get_ticks()
+                        makeButton(startButton,outlineWidth,"Start")
+                    else:
+                        if seconds == 0:
+                            startTick=pygame.time.get_ticks()
+                        else:
+                            startTick += pygame.time.get_ticks() - pauseTick
+                        timerRunning = True
+                        makeButton(startButton,outlineWidth,"Pause")
+                elif stopButton.collidepoint(event.pos):
+                    startTick=pygame.time.get_ticks()
+                    playerTurn = (playerTurn+1)%len(players)
+                    updatePlayers()
                 else:
                     manualRollTextBox = manualRollTextBox._replace(active=False)
             if manualRollTextBox.active:
@@ -406,8 +437,8 @@ def drawGraph(dict,x,y,w,h,total):
 def main():
     #mainMenu()
     #playerMenu()
-    Player = namedtuple("Player", "name color")
-    gameMenu([Player("Bar","Red"),Player("Tristan","Blue")])
+    Player = namedtuple("Player", "name color turnTime average")
+    gameMenu([Player("Bar","Red",0,0),Player("Tristan","Blue",0,0)])
 
 pygame.init()
 size = width, height = 700,700
