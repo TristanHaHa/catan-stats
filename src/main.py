@@ -182,6 +182,7 @@ def gameMenu(players):
     manualRollTextBox = TextBox(manualRollRect,"",False)
     makeTextBox(manualRollRect,"Input Roll")
 
+
     nums = []
     numsDict = {
         2:0,
@@ -196,7 +197,11 @@ def gameMenu(players):
         11:0,
         12:0
     }
-    index = -1 #current roll
+    index = -1 #current roll index
+    playerTurn = 0 # current player turn
+    gameMenuRunning = True
+    barPopup = False
+
     def rollDice():
         seed()
         die1 = randint(1,6)
@@ -227,10 +232,24 @@ def gameMenu(players):
         else:
             output = f"{rollsAgo} rolls ago"
         makeTextBox(manualRollRect,output)
+    topGraphMargin = 70
+    def updatePlayers():
+        playerFont = pygame.font.SysFont(None, 40)
+        playerTxt = playerFont.render(f"{players[playerTurn].name}'s", True, BLACK)
+        turnTxt = playerFont.render("turn", True, BLACK)
+        playerTxtBkgd = pygame.Rect(0,4,180,playerTxt.get_height()+turnTxt.get_height())
+        makeButton(playerTxtBkgd,0,"",RED)
+        screen.blit(playerTxt,[topGraphMargin-playerTxt.get_width()/2,5,playerTxt.get_width(),playerTxt.get_height()])
+        screen.blit(turnTxt,[topGraphMargin-turnTxt.get_width()/2,playerTxt.get_height(),turnTxt.get_width(),turnTxt.get_height()])
+    def updateTimer():
+        timerTxt = font.render("0:00", True, YELLOW)
+        timerTxtBkgd = pygame.Rect(0,height/4-timerTxt.get_height()/2,timerTxt.get_width(), timerTxt.get_height())
+        makeButton(timerTxtBkgd,0,"",(191,25,25))
+        screen.blit(timerTxt, [topGraphMargin-timerTxt.get_width()/2,timerTxtBkgd.top,timerTxt.get_width(), timerTxt.get_height()])
+    updateTimer()
+    updatePlayers()
     displayRoll()
     updateGraph()
-    gameMenuRunning = True
-    barPopup = False
     while gameMenuRunning:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -261,6 +280,8 @@ def gameMenu(players):
                         pygame.display.update()
                         pygame.time.delay(20)
                     updateRolls(roll)
+                    playerTurn = (playerTurn+1)%len(players)
+                    updatePlayers()
                     index+=1
                     if len(nums) == 1:
                         makeTextBox(manualRollRect,"1 roll")
@@ -279,6 +300,7 @@ def gameMenu(players):
                         index+=1
                         displayRoll(nums[index])
                         updateButtons()
+                        updatePlayers()
                 else:
                     manualRollTextBox = manualRollTextBox._replace(active=False)
             if manualRollTextBox.active:
@@ -289,6 +311,9 @@ def gameMenu(players):
                         if roll in ["2","3","4","5","6","7","8","9","10","11","12"]:
                             displayRoll(roll)
                             updateRolls(int(roll))
+                            updateButtons()
+                            playerTurn = (playerTurn+1)%len(players)
+                            updatePlayers()
                             newText = ""
                         else:
                             manualRollTextBox = manualRollTextBox._replace(txt="")
@@ -382,7 +407,7 @@ def main():
     #mainMenu()
     #playerMenu()
     Player = namedtuple("Player", "name color")
-    gameMenu([Player("Tristan","Red"),Player("Tristanity","Blue")])
+    gameMenu([Player("Bar","Red"),Player("Tristan","Blue")])
 
 pygame.init()
 size = width, height = 700,700
