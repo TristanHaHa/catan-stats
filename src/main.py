@@ -3,6 +3,13 @@ from collections import namedtuple
 from random import seed
 from random import randint
 
+
+BLACK = (0,0,0)
+WHITE = (255,255,255)
+GRAY = (128,128,128)
+RED = (191,25,25)
+YELLOW = (255,230,0)
+
 def mainMenu():
     buttonWidth = 130
     buttonHeight = 50
@@ -16,7 +23,7 @@ def mainMenu():
     makeButton(button,outlineWidth,"Start")
 
     titleFont = pygame.font.SysFont(None, 125)
-    titleTxt = titleFont.render("Catan Stats", True, (255,230,0))
+    titleTxt = titleFont.render("Catan Stats", True, YELLOW)
     screen.blit(titleTxt, [width/2-250,height/2 - 150, 500, 100])
 
     mainMenuRunning = True
@@ -49,8 +56,8 @@ def playerMenu():
     makeButton(nextButton,outlineWidth,"Next")
 
     titleFont = pygame.font.SysFont(None, 60)
-    titleTxt1 = titleFont.render("Please enter the players' names", True, (255,230,0))
-    titleTxt2 = titleFont.render("and colors in turn order", True, (255,230,0))
+    titleTxt1 = titleFont.render("Please enter the players' names", True, YELLOW)
+    titleTxt2 = titleFont.render("and colors in turn order", True, YELLOW)
     screen.blit(titleTxt1, [width/2-325,height/2 - 300, 500, 100])
     screen.blit(titleTxt2, [width/2-250,height/2 - 250, 500, 100])
 
@@ -143,7 +150,7 @@ def playerMenu():
                 gameMenu(players)
             else:
                 errorFont = pygame.font.SysFont(None, 30)
-                errorTxt = errorFont.render(errorMessage, True, (255,230,0))
+                errorTxt = errorFont.render(errorMessage, True, YELLOW)
                 errorBkgd = pygame.Rect(0,height*(3/4), width, 75)
                 makeButton(errorBkgd,0,"",(191,25,25))
                 screen.blit(errorTxt, [width/2-errorTxt.get_width()/2,height*(3/4), 300, 7])
@@ -196,7 +203,7 @@ def gameMenu(players):
         die2 = randint(1,6)
         return die1+die2
     def displayRoll(roll=0):
-        rollTxt = font.render(f"{roll}", True, (255,230,0))
+        rollTxt = font.render(f"{roll}", True, YELLOW)
         rollTxtBkgd = pygame.Rect(rollButtonX,rollButtonY - rollTxt.get_height(),buttonWidth, rollTxt.get_height())
         makeButton(rollTxtBkgd,0,"",(191,25,25))
         makeButton(rollButton,outlineWidth,"Roll")
@@ -238,7 +245,7 @@ def gameMenu(players):
                     barX =pygame.mouse.get_pos()[0]-barXLen
                     barY =pygame.mouse.get_pos()[1]-barYLen
                     tempRect = pygame.Rect(barX,barY,barXLen,barYLen)
-                    makeButton(tempRect,3,"",(255,255,255))
+                    makeButton(tempRect,3,"",WHITE)
                     screen.blit(bar.label, [barX+barXLen/2-bar.label.get_width()/2,barY+bar.label.get_height()/2,bar.label.get_width(),bar.label.get_height()])
                     break
             if event.type == pygame.MOUSEMOTION:
@@ -296,20 +303,20 @@ def gameMenu(players):
 
         pygame.display.update()
 
-def makeButton(rectangle,outlineWidth,txt="",bkgcolor=(128,128,128),txtcolor=(255,255,255)):
+def makeButton(rectangle,outlineWidth,txt="",bkgcolor=GRAY,txtcolor=WHITE):
     x = rectangle.left
     y = rectangle.top
     w = rectangle.w
     h = rectangle.h
 
-    pygame.draw.rect(screen,(0,0,0),[x-outlineWidth,y-outlineWidth,w+2*outlineWidth,h+2*outlineWidth])
+    pygame.draw.rect(screen,BLACK,[x-outlineWidth,y-outlineWidth,w+2*outlineWidth,h+2*outlineWidth])
     pygame.draw.rect(screen,bkgcolor,[x,y,w,h])
 
     font = pygame.font.SysFont(None, 40)
     text = font.render(txt, True, txtcolor)
     screen.blit(text, [x+(w/2 - text.get_width()/2),y+(h/2-text.get_height()/2),text.get_width(),text.get_height()])
 
-def makeTextBox(rectangle,txt="",color=(255,255,255),txtcolor=(0,0,0)):
+def makeTextBox(rectangle,txt="",color=WHITE,txtcolor=BLACK):
     x = rectangle.left
     y = rectangle.top
     w = rectangle.w
@@ -334,16 +341,16 @@ def drawGraph(dict,x,y,w,h,total):
         yLines.append(rect)
     for i in range(11):
         yLine = pygame.Rect(x,y-i*(h/10),w,thickness)
-        makeButton(yLine,0,"",(0,0,0))
-        sideLabel = font.render(f"{i*10}%", True, (0,0,0))
+        makeButton(yLine,0,"",BLACK)
+        sideLabel = font.render(f"{i*10}%", True, BLACK)
         screen.blit(sideLabel, [x-(5+sideLabel.get_width()),y-i*(h/10)-5,sideLabel.get_width(),sideLabel.get_height()])
     for i in range(numLines):
         midLine = pygame.Rect(0,height/2,width,thickness)
-        makeButton(midLine,0,"",(0,0,0))
+        makeButton(midLine,0,"",BLACK)
         if i == 0 or i == numLines-1:
             xLine = pygame.Rect(x+i*(w/(numLines-1)),y-h,thickness,h)
             xLines.append(xLine)
-            makeButton(xLine,0,"",(0,0,0))
+            makeButton(xLine,0,"",BLACK)
         else:#27p = 10 percent, 37p = 1 die
             barWidth = 25
             if len(total) == 0:
@@ -353,24 +360,23 @@ def drawGraph(dict,x,y,w,h,total):
                 percent = dict[i+1]/len(total)
                 yValue = yLines[math.floor(percent*100)].top
             bar = pygame.Rect(x+i*(w/(numLines-1))-barWidth/2,yValue,barWidth,yLines[0].bottom-yValue)
-            makeButton(bar,0,"",(0,0,0))
+            makeButton(bar,0,"",YELLOW)
 
             bottomBarHeight = 2
             bottomBar = pygame.Rect(x+i*(w/(numLines-1))-barWidth/2,y-bottomBarHeight,barWidth,bottomBarHeight)
-            makeButton(bottomBar,0,"",(0,0,0))
+            makeButton(bottomBar,0,"",YELLOW)
 
 
             if dict[i+1] > 0:
-                numLabel = font.render(f"{dict[i+1]}",True,(255,255,255))
+                numLabel = font.render(f"{dict[i+1]}",True,BLACK)
                 screen.blit(numLabel, [x+i*(w/(numLines-1))-numLabel.get_width()/2,yValue,numLabel.get_width(),numLabel.get_height()])
 
             hoverFont = pygame.font.SysFont(None, 20)
-            diceBars.append(Bar(bar,hoverFont.render(f"{percent*100:.2f}%",True,(0,0,0)),i+1))
+            diceBars.append(Bar(bar,hoverFont.render(f"{percent*100:.2f}%",True,BLACK),i+1))
 
         if not i >= numLines-2:
-            bottomLabel = font.render(f"{i+2}", True, (0,0,0))
+            bottomLabel = font.render(f"{i+2}", True, BLACK)
             screen.blit(bottomLabel, [x+(i+1)*(w/(numLines-1))-5,y+(5),bottomLabel.get_width(),bottomLabel.get_height()])
-
 
 def main():
     #mainMenu()
@@ -382,7 +388,10 @@ pygame.init()
 size = width, height = 700,700
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("Catan Stats")
+
 TextBox = namedtuple("TextBox", "rect txt active")
 Bar = namedtuple("Bar", "rect label diceNum")
 diceBars=[]
+
+
 main()
