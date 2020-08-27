@@ -179,9 +179,6 @@ def gameMenu(players):
     startButton = pygame.Rect(rollButtonX,150,buttonWidth,buttonHeight)
     makeButton(startButton,outlineWidth,"Start")
 
-    stopButton = pygame.Rect(rollButtonX,startButton.bottom+20,buttonWidth,buttonHeight)
-    makeButton(stopButton,outlineWidth,"Stop")
-
     font = pygame.font.SysFont(None, 100)
 
     manualRollRect = pygame.Rect(rollButtonX-5,rollButtonY - 115,buttonWidth+10,buttonHeight)
@@ -207,9 +204,10 @@ def gameMenu(players):
     playerTurn = 0 # current player turn
     gameMenuRunning = True
     timerRunning = False
+    nextPlayer = False
     barPopup = False
     seconds = 0
-    startTick=pygame.time.get_ticks()
+    startTick=0
     pauseTick = 0
 
     def rollDice():
@@ -296,12 +294,18 @@ def gameMenu(players):
                         displayRoll(roll)
                         pygame.display.update()
                         pygame.time.delay(20)
-                    updateRolls(roll)
-                    index+=1
-                    if len(nums) == 1:
-                        makeTextBox(manualRollRect,"1 roll")
-                    else:
-                        makeTextBox(manualRollRect,f"{len(nums)} rolls")
+                    if nextPlayer:
+                        playerTurn = (playerTurn+1)%len(players)
+                        startTick = pygame.time.get_ticks()
+                        timerRunning = True
+                        makeButton(startButton,outlineWidth,"Pause")
+                        updatePlayers()
+                        updateRolls(roll)
+                        index+=1
+                        if len(nums) == 1:
+                            makeTextBox(manualRollRect,"1 roll")
+                        else:
+                            makeTextBox(manualRollRect,f"{len(nums)} rolls")
                 elif manualRollRect.collidepoint(event.pos):
                     manualRollTextBox = manualRollTextBox._replace(active=True)
                     makeTextBox(manualRollRect,manualRollTextBox.txt)
@@ -318,6 +322,7 @@ def gameMenu(players):
                         updatePlayers()
                 elif startButton.collidepoint(event.pos):
                     if timerRunning:
+                        nextPlayer = True
                         timerRunning = False
                         pauseTick=pygame.time.get_ticks()
                         makeButton(startButton,outlineWidth,"Start")
@@ -328,10 +333,6 @@ def gameMenu(players):
                             startTick += pygame.time.get_ticks() - pauseTick
                         timerRunning = True
                         makeButton(startButton,outlineWidth,"Pause")
-                elif stopButton.collidepoint(event.pos):
-                    startTick=pygame.time.get_ticks()
-                    playerTurn = (playerTurn+1)%len(players)
-                    updatePlayers()
                 else:
                     manualRollTextBox = manualRollTextBox._replace(active=False)
             if manualRollTextBox.active:
@@ -341,11 +342,17 @@ def gameMenu(players):
                         roll = manualRollTextBox.txt
                         if roll in ["2","3","4","5","6","7","8","9","10","11","12"]:
                             displayRoll(roll)
-                            updateRolls(int(roll))
                             updateButtons()
-                            playerTurn = (playerTurn+1)%len(players)
-                            updatePlayers()
                             newText = ""
+                            if nextPlayer:
+                                timerRunning = True
+                                playerTurn = (playerTurn+1)%len(players)
+                                updatePlayers()
+                                updateRolls(int(roll))
+                            if len(nums) == 1:
+                                makeTextBox(manualRollRect,"1 roll")
+                            else:
+                                makeTextBox(manualRollRect,f"{len(nums)} rolls")
                         else:
                             manualRollTextBox = manualRollTextBox._replace(txt="")
                             makeTextBox(manualRollRect,"ERROR")
@@ -438,7 +445,7 @@ def main():
     #mainMenu()
     #playerMenu()
     Player = namedtuple("Player", "name color turnTime average")
-    gameMenu([Player("Bar","Red",0,0),Player("Tristan","Blue",0,0)])
+    gameMenu([Player("Player","Red",0,0),Player("Tristan","Blue",0,0)])
 
 pygame.init()
 size = width, height = 700,700
