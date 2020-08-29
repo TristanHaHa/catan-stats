@@ -17,7 +17,7 @@ def mainMenu():
     buttonX = width/2 - buttonWidth/2
     buttonY = height/2
 
-    screen.fill((191,25,25))
+    screen.fill(RED)
 
     button = pygame.Rect(buttonX,buttonY,buttonWidth,buttonHeight)
     makeButton(button,outlineWidth,"Start")
@@ -39,7 +39,7 @@ def mainMenu():
     playerMenu()
 
 def playerMenu():
-    screen.fill((191,25,25))
+    screen.fill(RED)
 
     buttonWidth = 130
     buttonHeight = 50
@@ -152,14 +152,14 @@ def playerMenu():
                 errorFont = pygame.font.SysFont(None, 30)
                 errorTxt = errorFont.render(errorMessage, True, YELLOW)
                 errorBkgd = pygame.Rect(0,height*(3/4), width, 75)
-                makeButton(errorBkgd,0,"",(191,25,25))
+                makeButton(errorBkgd,0,"",RED)
                 screen.blit(errorTxt, [width/2-errorTxt.get_width()/2,height*(3/4), 300, 7])
         else:
             canContinue = True
             mainMenu()
 
 def gameMenu(players):
-    screen.fill((191,25,25))
+    screen.fill(RED)
 
     buttonWidth = 100
     buttonHeight = 40
@@ -200,6 +200,9 @@ def gameMenu(players):
         11:0,
         12:0
     }
+    timesDict = {}
+    for player in players:
+        timesDict[player.name] = 0
     index = -1 #current roll index
     playerTurn = 0 # current player turn
     gameMenuRunning = True
@@ -221,9 +224,12 @@ def gameMenu(players):
     def displayRoll(roll=0):
         rollTxt = font.render(f"{roll}", True, YELLOW)
         rollTxtBkgd = pygame.Rect(rollButtonX,rollButtonY - rollTxt.get_height(),buttonWidth, rollTxt.get_height())
-        makeButton(rollTxtBkgd,0,"",(191,25,25))
+        makeButton(rollTxtBkgd,0,"",RED)
         makeButton(rollButton,outlineWidth,"Roll")
         screen.blit(rollTxt, [rollButtonX+(buttonWidth/2 - rollTxt.get_width()/2),rollButtonY - rollTxt.get_height(),rollTxt.get_width(), rollTxt.get_height()])
+    def displayGraphs():
+        rollGraph.display()
+        #timerGraph.display()
     def updateGraphs():
         rollGraph.update(numsDict)
         #timerGraph.update(numsDict)
@@ -235,7 +241,7 @@ def gameMenu(players):
         if 0 <= index < len(nums)-1:
             makeButton(nextButton,outlineWidth,"Next")
         else:
-            makeButton(pygame.Rect(nextButton.left-outlineWidth,nextButton.top-outlineWidth,nextButton.width+outlineWidth*2,nextButton.height+outlineWidth*2),0,"",(191,25,25))
+            makeButton(pygame.Rect(nextButton.left-outlineWidth,nextButton.top-outlineWidth,nextButton.width+outlineWidth*2,nextButton.height+outlineWidth*2),0,"",RED)
         rollsAgo = len(nums)-index-1
         if rollsAgo == 1:
             output = "1 roll ago"
@@ -260,38 +266,38 @@ def gameMenu(players):
         timeFormatted = f"{minutes}:{tensPlace}{onesPlace}"
         timerTxt = font.render(timeFormatted, True, YELLOW)
         timerTxtBkgd = pygame.Rect(0,topGraphMargin,timerTxt.get_width()+50, timerTxt.get_height())
-        makeButton(timerTxtBkgd,0,"",(191,25,25))
+        makeButton(timerTxtBkgd,0,"",RED)
         screen.blit(timerTxt, [(rollButtonX+buttonWidth/2)-timerTxt.get_width()/2,timerTxtBkgd.top,timerTxt.get_width(), timerTxt.get_height()])
     updateTimer()
     updatePlayers()
     displayRoll()
-    updateGraphs()
+    displayGraphs()
     while gameMenuRunning:
         if timerRunning:
             ms = int(pygame.time.get_ticks()-startTick)
             updateTimer(int(ms/1000))
-            updateGraphs()
+            displayGraphs()
+        for bar in diceBars:
+            if bar.rect.collidepoint(pygame.mouse.get_pos()):
+                barPopup = True
+                updateGraphs()
+                barXLen = 50
+                barYLen = 30
+                barX =pygame.mouse.get_pos()[0]-barXLen
+                barY =pygame.mouse.get_pos()[1]-barYLen
+                tempRect = pygame.Rect(barX,barY,barXLen,barYLen)
+                makeButton(tempRect,3,"",WHITE)
+                screen.blit(bar.label, [barX+barXLen/2-bar.label.get_width()/2,barY+bar.label.get_height()/2,bar.label.get_width(),bar.label.get_height()])
+                break
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
-            for bar in diceBars:
-                if bar.rect.collidepoint(pygame.mouse.get_pos()):
-                    barPopup = True
-                    updateGraphs()
-                    barXLen = 50
-                    barYLen = 30
-                    barX =pygame.mouse.get_pos()[0]-barXLen
-                    barY =pygame.mouse.get_pos()[1]-barYLen
-                    tempRect = pygame.Rect(barX,barY,barXLen,barYLen)
-                    makeButton(tempRect,3,"",WHITE)
-                    screen.blit(bar.label, [barX+barXLen/2-bar.label.get_width()/2,barY+bar.label.get_height()/2,bar.label.get_width(),bar.label.get_height()])
-                    break
             if event.type == pygame.MOUSEMOTION:
                 if barPopup:
                     if not bar.rect.collidepoint(pygame.mouse.get_pos()):
                         barPopup = False
-                        updateGraphs()
+                        displayGraphs()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if rollButton.collidepoint(event.pos):
                     for i in range(15):
@@ -399,27 +405,39 @@ def makeTextBox(rectangle,txt="",color=WHITE,txtcolor=BLACK):
     screen.blit(text, [x+5,y+(h/2-text.get_height()/2+2),text.get_width(),text.get_height()])
 
 class Graph:
-    def __init__(self, data, x, y, w, h, numLines=13):
+    def __init__(self, data, x, y, w, h, numXLines=13, numYLines=11, maxYAxis=100):
         self.data = data
         self.x = x
         self.y = y
         self.w = w
         self.h = h
-        self.numLines = numLines
-        self.update(data)
+        self.numYLines = numYLines
+        self.numXLines = numXLines
+        self.maxXAxis = len(data)
+        self.maxYAxis = maxYAxis
+
+        self.total = 0
+        for value in self.data.values():
+            self.total += value
+        self.display()
 
     def update(self, newData):
         self.data = newData
-        sum = 0
+        self.total = 0
         for value in self.data.values():
-            sum += value
-        self.total = sum
+            self.total += value
+        #TODO timer graph and fix ylabel content
+        if self.total > 0:
+            self.maxYAxis = 0
+            for value in self.data.values():
+                self.maxYAxis = max(self.maxYAxis,int(100*(value/self.total)))
+            xAxisInterval = self.maxXAxis/(self.numXLines-1)
+            yAxisInterval = self.maxYAxis/(self.numYLines-1)
         self.display()
 
     def display(self):
         global diceBars
         yLines = []
-        xLines = []
         diceBars.clear()
 
         data = self.data
@@ -429,25 +447,34 @@ class Graph:
         h = self.h
         total = self.total
 
-        thickness = 2
-        numLines = self.numLines
+        numXLines = self.numXLines
+        numYLines = self.numYLines
+        maxXAxis = self.maxXAxis
+        maxYAxis = self.maxYAxis
+        xAxisInterval = maxXAxis/(numXLines-1)
+        yAxisInterval = maxYAxis/(numYLines-1)
 
-        makeButton(pygame.Rect(x-50,y-h-50,w+100,h+100),0,"",RED)
+        thickness = 2
+
+        makeButton(pygame.Rect(x-60,y-h-50,w+120,h+100),0,"",RED)
         font = pygame.font.SysFont(None, 25)
-        for i in range(101):
-            rect = pygame.Rect(x,y-i*(h/100),w,thickness)
+        #draw reference ylines
+        for i in range(maxYAxis+1):
+            rect = pygame.Rect(x,y-i*h/maxYAxis,w,thickness)
             yLines.append(rect)
-        for i in range(11):
-            yLine = pygame.Rect(x,y-i*(h/10),w,thickness)
+        #draw ylines
+        for i in range(numYLines):
+            yLine = pygame.Rect(x,y-i*(h/(numYLines-1)),w,thickness)
             makeButton(yLine,0,"",BLACK)
-            sideLabel = font.render(f"{i*10}%", True, BLACK)
-            screen.blit(sideLabel, [x-(5+sideLabel.get_width()),y-i*(h/10)-5,sideLabel.get_width(),sideLabel.get_height()])
-        for i in range(numLines):
+            #draw y axis labels
+            sideLabel = font.render(f"{i*yAxisInterval:.1f}%", True, BLACK)
+            screen.blit(sideLabel, [x-(5+sideLabel.get_width()),y-i*(h/(numYLines-1))-5,sideLabel.get_width(),sideLabel.get_height()])
+        #draw xlines
+        for i in range(numXLines):
             midLine = pygame.Rect(0,height/2,width,thickness)
             makeButton(midLine,0,"",BLACK)
-            if i == 0 or i == numLines-1:
-                xLine = pygame.Rect(x+i*(w/(numLines-1)),y-h,thickness,h)
-                xLines.append(xLine)
+            if i == 0 or i == numXLines-1:
+                xLine = pygame.Rect(x+i*(w/(numXLines-1)),y-h,thickness,h)
                 makeButton(xLine,0,"",BLACK)
             else:#27p = 10 percent, 37p = 1 die
                 barWidth = 25
@@ -457,24 +484,20 @@ class Graph:
                 else:
                     percent = data[i+1]/total
                     yValue = yLines[math.floor(percent*100)].top
-                bar = pygame.Rect(x+i*(w/(numLines-1))-barWidth/2,yValue,barWidth,yLines[0].bottom-yValue)
+                bar = pygame.Rect(x+i*(w/(numXLines-1))-barWidth/2,yValue,barWidth,yLines[0].bottom-yValue-thickness)
                 makeButton(bar,0,"",YELLOW)
 
-                bottomBarHeight = 2
-                bottomBar = pygame.Rect(x+i*(w/(numLines-1))-barWidth/2,y-bottomBarHeight,barWidth,bottomBarHeight)
-                makeButton(bottomBar,0,"",YELLOW)
-
-
+                #draw x axis labels
                 if data[i+1] > 0:
                     numLabel = font.render(f"{data[i+1]}",True,BLACK)
-                    screen.blit(numLabel, [x+i*(w/(numLines-1))-numLabel.get_width()/2,yValue,numLabel.get_width(),numLabel.get_height()])
+                    screen.blit(numLabel, [x+i*(w/(numXLines-1))-numLabel.get_width()/2,yValue,numLabel.get_width(),numLabel.get_height()])
 
                 hoverFont = pygame.font.SysFont(None, 20)
                 diceBars.append(Bar(bar,hoverFont.render(f"{percent*100:.2f}%",True,BLACK),i+1))
 
-            if not i >= numLines-2:
+            if not i >= numXLines-2:
                 bottomLabel = font.render(f"{i+2}", True, BLACK)
-                screen.blit(bottomLabel, [x+(i+1)*(w/(numLines-1))-5,y+(5),bottomLabel.get_width(),bottomLabel.get_height()])
+                screen.blit(bottomLabel, [x+(i+1)*(w/(numXLines-1))-5,y+(5),bottomLabel.get_width(),bottomLabel.get_height()])
 
 
 
