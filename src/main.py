@@ -364,8 +364,13 @@ def gameMenu(players):
                             newText = ""
                             if started:
                                 timerRunning = True
-                                timesDict[players[playerTurn].name] = (timesDict[players[playerTurn].name]+seconds)/2
+                                if timesDict[players[playerTurn].name] == 0:
+                                    timesDict[players[playerTurn].name] = timesDict[players[playerTurn].name]+(ms/1000)
+                                else:
+                                    timesDict[players[playerTurn].name] = (timesDict[players[playerTurn].name]+(ms/1000))/2
                                 playerTurn = (playerTurn+1)%len(players)
+                                index += 1
+                                startTick = pygame.time.get_ticks()
                                 updatePlayers()
                                 updateRolls(int(roll))
                             if len(nums) == 1:
