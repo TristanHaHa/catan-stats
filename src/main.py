@@ -122,7 +122,6 @@ def playerMenu():
             pygame.display.update()
 
         if (nextMenu):
-            Player = namedtuple("Player", "name color")
             players = []
             errorMessage = ""
             numPlayers = 0
@@ -134,14 +133,13 @@ def playerMenu():
                         hasPlayer = True
                         numPlayers+=1
                         name = textBoxes[i].txt
+                        players.append(Player(name,textBoxes[i].txt,0,0))
                     else:
                         break
                 elif hasPlayer:
                     if textBoxes[i].txt == "":
                         hasPlayer = False
                         errorMessage = "Error: must include a color for each player"
-                    else:
-                        players.append(Player(name,textBoxes[i].txt,0,0))
 
             if errorMessage == "" and numPlayers < 2:
                 errorMessage = "Error: must have at least 2 players"
@@ -204,17 +202,17 @@ def gameMenu(players):
     for player in players:
         timesDict[player.name] = 0
     index = -1 #current roll index
-    playerTurn = 0 # current player turn
+    playerTurn = 0 # current player index
     gameMenuRunning = True
     timerRunning = False
-    started = False
-    barPopup = False
+    started = False # if user rolled yet
+    barPopup = False # if bar is being displayed
     ms = 0
     startTick=0
     pauseTick = 0
 
-    rollGraph = Graph(numsDict,width*(2/7),height-50,1.37*width/2,0.8*height/2)
-    #timerGraph = Graph(numsDict,width*(2/7),height-50 - (height/2),1.37*width/2,0.8*height/2)
+    rollGraph = Graph(numsDict,width-1.37*width/2-5,height-50,1.37*width/2,0.8*height/2,13,11,100,"%")
+    timerGraph = Graph(timesDict,width-1.37*width/2-5,height-50 - (height/2),1.37*width/2,0.8*height/2,len(timesDict)+2,11,10,"s")
 
     def rollDice():
         seed()
@@ -229,10 +227,10 @@ def gameMenu(players):
         screen.blit(rollTxt, [rollButtonX+(buttonWidth/2 - rollTxt.get_width()/2),rollButtonY - rollTxt.get_height(),rollTxt.get_width(), rollTxt.get_height()])
     def displayGraphs():
         rollGraph.display()
-        #timerGraph.display()
+        timerGraph.display()
     def updateGraphs():
         rollGraph.update(numsDict)
-        #timerGraph.update(numsDict)
+        timerGraph.update(timesDict)
     def updateRolls(roll):
         nums.append(roll)
         numsDict[roll] += 1
@@ -259,7 +257,8 @@ def gameMenu(players):
         makeButton(playerTxtBkgd,0,"",RED)
         screen.blit(playerTxt,[(rollButtonX+buttonWidth/2)-playerTxt.get_width()/2,5,playerTxt.get_width(),playerTxt.get_height()])
         screen.blit(turnTxt,[(rollButtonX+buttonWidth/2)-turnTxt.get_width()/2,playerTxt.get_height(),turnTxt.get_width(),turnTxt.get_height()])
-    def updateTimer(seconds=0):
+    def updateTimer(ms=0):
+        seconds = int(ms/1000)
         minutes = int(seconds/60)
         tensPlace = int((seconds - minutes*60)/10)
         onesPlace = seconds%10
@@ -275,12 +274,12 @@ def gameMenu(players):
     while gameMenuRunning:
         if timerRunning:
             ms = int(pygame.time.get_ticks()-startTick)
-            updateTimer(int(ms/1000))
+            updateTimer(ms)
             displayGraphs()
-        for bar in diceBars:
+        for bar in bars:
             if bar.rect.collidepoint(pygame.mouse.get_pos()):
                 barPopup = True
-                updateGraphs()
+                displayGraphs()
                 barXLen = 50
                 barYLen = 30
                 barX =pygame.mouse.get_pos()[0]-barXLen
@@ -307,12 +306,17 @@ def gameMenu(players):
                         pygame.time.delay(20)
                     if started:
                         players[playerTurn] = players[playerTurn]._replace(turns=players[playerTurn].turns+1,averageTime=ms/(players[playerTurn].turns+1))
+                        if timesDict[players[playerTurn].name] == 0:
+                            timesDict[players[playerTurn].name] = timesDict[players[playerTurn].name]+(ms/1000)
+                        else:
+                            timesDict[players[playerTurn].name] = (timesDict[players[playerTurn].name]+(ms/1000))/2
                         playerTurn = (playerTurn+1)%len(players)
                         startTick = pygame.time.get_ticks()
                         timerRunning = True
                         makeButton(startButton,outlineWidth,"Pause")
                         updatePlayers()
                         updateRolls(roll)
+                        updateGraphs()
                         index+=1
                         if len(nums) == 1:
                             makeTextBox(manualRollRect,"1 roll")
@@ -360,6 +364,7 @@ def gameMenu(players):
                             newText = ""
                             if started:
                                 timerRunning = True
+                                timesDict[players[playerTurn].name] = (timesDict[players[playerTurn].name]+seconds)/2
                                 playerTurn = (playerTurn+1)%len(players)
                                 updatePlayers()
                                 updateRolls(int(roll))
@@ -405,7 +410,7 @@ def makeTextBox(rectangle,txt="",color=WHITE,txtcolor=BLACK):
     screen.blit(text, [x+5,y+(h/2-text.get_height()/2+2),text.get_width(),text.get_height()])
 
 class Graph:
-    def __init__(self, data, x, y, w, h, numXLines=13, numYLines=11, maxYAxis=100):
+    def __init__(self, data, x, y, w, h, numXLines, numYLines, maxYAxis, yAxisLabel):
         self.data = data
         self.x = x
         self.y = y
@@ -415,7 +420,7 @@ class Graph:
         self.numXLines = numXLines
         self.maxXAxis = len(data)
         self.maxYAxis = maxYAxis
-
+        self.yAxisLabel = yAxisLabel
         self.total = 0
         for value in self.data.values():
             self.total += value
@@ -426,20 +431,29 @@ class Graph:
         self.total = 0
         for value in self.data.values():
             self.total += value
-        #TODO timer graph and fix ylabel content
+        #readjust the y axis
         if self.total > 0:
-            self.maxYAxis = 0
+            self.maxYAxis = 1
             for value in self.data.values():
-                self.maxYAxis = max(self.maxYAxis,int(100*(value/self.total)))
-            xAxisInterval = self.maxXAxis/(self.numXLines-1)
+                if self.yAxisLabel == "%":
+                    self.maxYAxis = max(self.maxYAxis,int(100*(value/self.total)))
+                else:
+                    self.maxYAxis = max(self.maxYAxis,int(value+1))
             yAxisInterval = self.maxYAxis/(self.numYLines-1)
         self.display()
 
     def display(self):
-        global diceBars
+        global bars
         yLines = []
-        diceBars.clear()
-
+        temp = []
+        for bar in bars:
+            if self.yAxisLabel == "%":
+                if bar.rect.top < self.h/2:
+                    temp.append(bar)
+            else:
+                if bar.rect.top > self.h/2:
+                    temp.append(bar)
+        bar = temp
         data = self.data
         x = self.x
         y = self.y
@@ -459,62 +473,82 @@ class Graph:
         makeButton(pygame.Rect(x-60,y-h-50,w+120,h+100),0,"",RED)
         font = pygame.font.SysFont(None, 25)
         #draw reference ylines
-        for i in range(maxYAxis+1):
-            rect = pygame.Rect(x,y-i*h/maxYAxis,w,thickness)
-            yLines.append(rect)
+        if self.yAxisLabel == "%":
+            for i in range(maxYAxis+1):
+                rect = pygame.Rect(x,y-i*h/maxYAxis,w,thickness)
+                yLines.append(rect)
+        else:
+            for i in range((maxYAxis+1)*10):
+                rect = pygame.Rect(x,y-i*h/(maxYAxis*10),w,thickness)
+                yLines.append(rect)
         #draw ylines
         for i in range(numYLines):
             yLine = pygame.Rect(x,y-i*(h/(numYLines-1)),w,thickness)
             makeButton(yLine,0,"",BLACK)
             #draw y axis labels
-            sideLabel = font.render(f"{i*yAxisInterval:.1f}%", True, BLACK)
+            sideLabel = font.render(f"{i*yAxisInterval:.1f}{self.yAxisLabel}", True, BLACK)
             screen.blit(sideLabel, [x-(5+sideLabel.get_width()),y-i*(h/(numYLines-1))-5,sideLabel.get_width(),sideLabel.get_height()])
-        #draw xlines
+
+        midLine = pygame.Rect(0,height/2,width,thickness)
+        makeButton(midLine,0,"",BLACK)
+
         for i in range(numXLines):
-            midLine = pygame.Rect(0,height/2,width,thickness)
-            makeButton(midLine,0,"",BLACK)
             if i == 0 or i == numXLines-1:
                 xLine = pygame.Rect(x+i*(w/(numXLines-1)),y-h,thickness,h)
                 makeButton(xLine,0,"",BLACK)
-            else:#27p = 10 percent, 37p = 1 die
-                barWidth = 25
-                if total == 0:
-                    percent = 0
-                    yValue = y
-                else:
-                    percent = data[i+1]/total
+
+        i = 0
+        for key,value in data.items():
+            barWidth = 25
+            if total == 0:
+                percent = 0
+                yValue = y
+            else:
+                percent = value/total
+                if self.yAxisLabel == "%":
                     yValue = yLines[math.floor(percent*100)].top
-                bar = pygame.Rect(x+i*(w/(numXLines-1))-barWidth/2,yValue,barWidth,yLines[0].bottom-yValue-thickness)
-                makeButton(bar,0,"",YELLOW)
-
-                #draw x axis labels
-                if data[i+1] > 0:
-                    numLabel = font.render(f"{data[i+1]}",True,BLACK)
-                    screen.blit(numLabel, [x+i*(w/(numXLines-1))-numLabel.get_width()/2,yValue,numLabel.get_width(),numLabel.get_height()])
-
-                hoverFont = pygame.font.SysFont(None, 20)
-                diceBars.append(Bar(bar,hoverFont.render(f"{percent*100:.2f}%",True,BLACK),i+1))
-
-            if not i >= numXLines-2:
-                bottomLabel = font.render(f"{i+2}", True, BLACK)
-                screen.blit(bottomLabel, [x+(i+1)*(w/(numXLines-1))-5,y+(5),bottomLabel.get_width(),bottomLabel.get_height()])
+                else:
+                    yValue = yLines[math.floor(value*10)].top
+            bar = pygame.Rect(x+(i+1)*(w/(numXLines-1))-barWidth/2,yValue,barWidth,yLines[0].bottom-yValue-thickness)
+            makeButton(bar,0,"",YELLOW)
 
 
+            if self.yAxisLabel == "%":
+                str = f"{percent*100:.2f}%"
+            else:
+                str = f"{value:.2f}s"
+            hoverFont = pygame.font.SysFont(None, 20)
+            bars.append(Bar(bar,hoverFont.render(str,True,BLACK),i+1))
+
+            if value > 0:
+                if self.yAxisLabel == "%":
+                    bottomLabel = font.render(f"{value}", True, BLACK)
+                    screen.blit(bottomLabel, [x+(i+1)*(w/(numXLines-1))-5,yValue,bottomLabel.get_width(),bottomLabel.get_height()])
+                else:
+                    bottomLabel = font.render(f"{(value):.1f}", True, BLACK)
+                    screen.blit(bottomLabel, [x+(i+1)*(w/(numXLines-1))-12,yValue,bottomLabel.get_width(),bottomLabel.get_height()])
+
+
+            #draw x axis labels
+            numLabel = font.render(f"{key}",True,BLACK)
+            screen.blit(numLabel, [x+(i+1)*(w/(numXLines-1))-numLabel.get_width()/2,y+5,numLabel.get_width(),numLabel.get_height()])
+            i+=1
 
 def main():
-    #mainMenu()
-    #playerMenu()
-    Player = namedtuple("Player", "name color turns averageTime")
-    gameMenu([Player("Player","Red",0,0),Player("Tristan","Blue",0,0)])
+    mainMenu()
 
 pygame.init()
 size = width, height = 700,700
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("Catan Stats")
 
+Player = namedtuple("Player", "name color turns averageTime")
+
 TextBox = namedtuple("TextBox", "rect txt active")
-Bar = namedtuple("Bar", "rect label diceNum")
-diceBars=[]
+Bar = namedtuple("Bar", "rect label num")
+bars=[]
+#TODO revamp labeling and data from dict to namedtuple
+#GraphData = namedtuple("GraphData", "xAxisLabel yAxisLabel yData")
 
 
 main()
