@@ -4,12 +4,23 @@ from random import seed
 from random import randint
 
 
+# define instance variables
 BLACK = (0,0,0)
 WHITE = (255,255,255)
 GRAY = (128,128,128)
 RED = (191,25,25)
 YELLOW = (255,230,0)
 
+width, height = 700,700
+
+Player = namedtuple("Player", "name color turns averageTime")
+TextBox = namedtuple("TextBox", "rect txt active")
+Bar = namedtuple("Bar", "rect label num")
+diceBars=[]
+timerBars=[]
+bars=[]
+
+# displays main menu
 def mainMenu():
     buttonWidth = 130
     buttonHeight = 50
@@ -38,6 +49,8 @@ def mainMenu():
         pygame.display.update()
     playerMenu()
 
+
+# displays player menu
 def playerMenu():
     screen.fill(RED)
 
@@ -61,6 +74,7 @@ def playerMenu():
     screen.blit(titleTxt1, [width/2-325,height/2 - 300, 500, 100])
     screen.blit(titleTxt2, [width/2-250,height/2 - 250, 500, 100])
 
+    # adds text boxes to array for future click detection
     textBoxes = []
     for i in range(1,5):
         rect1 = pygame.Rect(width/2 - (140+50),150+ 75*i,140,30)
@@ -71,6 +85,8 @@ def playerMenu():
 
         textBoxes.append(TextBox(rect1,"",False))
         textBoxes.append(TextBox(rect2,"",False))
+
+    # user can continue when inputs are valid
     canContinue = False
     while canContinue == False:
         playerMenuRunning = True
@@ -91,11 +107,14 @@ def playerMenu():
                                 textBoxes[activeTextBoxIndex] = textBoxes[activeTextBoxIndex]._replace(active = False)
                             textBoxes[i] = textBoxes[i]._replace(active = True)
                             activeTextBoxIndex = i
+
                     if clickedOnBox == False:
                         if activeTextBoxIndex >=0:
                             activeTextBoxIndex = -1
                     else:
                         makeTextBox(textBoxes[activeTextBoxIndex].rect,textBoxes[activeTextBoxIndex].txt)
+
+                # handles key events for text boxes
                 if event.type == pygame.KEYDOWN and activeTextBoxIndex >= 0:
                     newText = textBoxes[activeTextBoxIndex].txt
                     if event.key == pygame.K_TAB or  event.key == pygame.K_RETURN:
@@ -121,6 +140,7 @@ def playerMenu():
 
             pygame.display.update()
 
+        # checks if user inputs are valid
         if (nextMenu):
             players = []
             errorMessage = ""
@@ -156,6 +176,7 @@ def playerMenu():
             canContinue = True
             mainMenu()
 
+# displays game menu
 def gameMenu(players):
     screen.fill(RED)
 
@@ -183,7 +204,7 @@ def gameMenu(players):
     manualRollTextBox = TextBox(manualRollRect,"",False)
     makeTextBox(manualRollRect,"Input Roll")
 
-
+    # instance variables for storing graph information
     nums = []
     numsDict = {
         2:0,
@@ -202,15 +223,16 @@ def gameMenu(players):
     for player in players:
         timesDict[player.name] = 0
     index = -1 #current roll index
-    playerTurn = 0 # current player index
-    gameMenuRunning = True
+    playerTurn = 0 # current player
     timerRunning = False
-    started = False # if user rolled yet
     barPopup = False # if bar is being displayed
+    # timer variables
     ms = 0
     startTick=0
     pauseTick = 0
+    gameMenuRunning = True
 
+    # graph objects
     rollGraph = Graph(numsDict,width-1.37*width/2-5,height-50,1.37*width/2,0.8*height/2,13,11,100,"%")
     timerGraph = Graph(timesDict,width-1.37*width/2-5,height-50 - (height/2),1.37*width/2,0.8*height/2,len(timesDict)+2,11,10,"s")
 
@@ -248,8 +270,8 @@ def gameMenu(players):
         else:
             output = f"{rollsAgo} rolls ago"
         makeTextBox(manualRollRect,output)
-    topGraphMargin = 70
-    def updatePlayers():
+    topGraphMargin = 70 # position variable for multiple functions
+    def displayPlayer():
         playerFont = pygame.font.SysFont(None, 40)
         playerTxt = playerFont.render(f"{players[playerTurn].name}'s", True, BLACK)
         turnTxt = playerFont.render("turn", True, BLACK)
@@ -267,15 +289,27 @@ def gameMenu(players):
         timerTxtBkgd = pygame.Rect(0,topGraphMargin,timerTxt.get_width()+50, timerTxt.get_height())
         makeButton(timerTxtBkgd,0,"",RED)
         screen.blit(timerTxt, [(rollButtonX+buttonWidth/2)-timerTxt.get_width()/2,timerTxtBkgd.top,timerTxt.get_width(), timerTxt.get_height()])
+    def nextTurn():
+        nonlocal timerRunning, timesDict, playerTurn, index, startTick
+        timerRunning = True
+        if timesDict[players[playerTurn].name] == 0:
+            timesDict[players[playerTurn].name] = timesDict[players[playerTurn].name]+(ms/1000)
+        else:
+            timesDict[players[playerTurn].name] = (timesDict[players[playerTurn].name]+(ms/1000))/2
+        playerTurn = (playerTurn+1)%len(players)
+        index += 1
+        startTick = pygame.time.get_ticks()
     updateTimer()
-    updatePlayers()
+    displayPlayer()
     displayRoll()
     displayGraphs()
     while gameMenuRunning:
+        # updates timer
         if timerRunning:
             ms = int(pygame.time.get_ticks()-startTick)
             updateTimer(ms)
             displayGraphs()
+        # checks for mouse hover
         for bar in bars:
             if bar.rect.collidepoint(pygame.mouse.get_pos()):
                 barPopup = True
@@ -292,6 +326,7 @@ def gameMenu(players):
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
+            # checks to exit mouse hover state
             if event.type == pygame.MOUSEMOTION:
                 if barPopup:
                     if not bar.rect.collidepoint(pygame.mouse.get_pos()):
@@ -304,24 +339,17 @@ def gameMenu(players):
                         displayRoll(roll)
                         pygame.display.update()
                         pygame.time.delay(20)
-                    if started:
-                        players[playerTurn] = players[playerTurn]._replace(turns=players[playerTurn].turns+1,averageTime=ms/(players[playerTurn].turns+1))
-                        if timesDict[players[playerTurn].name] == 0:
-                            timesDict[players[playerTurn].name] = timesDict[players[playerTurn].name]+(ms/1000)
-                        else:
-                            timesDict[players[playerTurn].name] = (timesDict[players[playerTurn].name]+(ms/1000))/2
-                        playerTurn = (playerTurn+1)%len(players)
-                        startTick = pygame.time.get_ticks()
-                        timerRunning = True
-                        makeButton(startButton,outlineWidth,"Pause")
-                        updatePlayers()
-                        updateRolls(roll)
-                        updateGraphs()
-                        index+=1
-                        if len(nums) == 1:
-                            makeTextBox(manualRollRect,"1 roll")
-                        else:
-                            makeTextBox(manualRollRect,f"{len(nums)} rolls")
+                    players[playerTurn] = players[playerTurn]._replace(turns=players[playerTurn].turns+1,averageTime=ms/(players[playerTurn].turns+1))
+                    nextTurn()
+                    makeButton(startButton,outlineWidth,"Pause")
+                    displayPlayer()
+                    updateRolls(roll)
+                    updateGraphs()
+                    index+=1
+                    if len(nums) == 1:
+                        makeTextBox(manualRollRect,"1 roll")
+                    else:
+                        makeTextBox(manualRollRect,f"{len(nums)} rolls")
 
                 elif manualRollRect.collidepoint(event.pos):
                     manualRollTextBox = manualRollTextBox._replace(active=True)
@@ -336,10 +364,8 @@ def gameMenu(players):
                         index+=1
                         displayRoll(nums[index])
                         updateButtons()
-                        updatePlayers()
+                        displayPlayer()
                 elif startButton.collidepoint(event.pos):
-                    if not started:
-                        started = True
                     if timerRunning:
                         timerRunning = False
                         pauseTick=pygame.time.get_ticks()
@@ -353,6 +379,7 @@ def gameMenu(players):
                         makeButton(startButton,outlineWidth,"Pause")
                 else:
                     manualRollTextBox = manualRollTextBox._replace(active=False)
+            # handles manual roll input
             if manualRollTextBox.active:
                 if event.type == pygame.KEYDOWN:
                     newText = manualRollTextBox.txt
@@ -362,17 +389,9 @@ def gameMenu(players):
                             displayRoll(roll)
                             updateButtons()
                             newText = ""
-                            if started:
-                                timerRunning = True
-                                if timesDict[players[playerTurn].name] == 0:
-                                    timesDict[players[playerTurn].name] = timesDict[players[playerTurn].name]+(ms/1000)
-                                else:
-                                    timesDict[players[playerTurn].name] = (timesDict[players[playerTurn].name]+(ms/1000))/2
-                                playerTurn = (playerTurn+1)%len(players)
-                                index += 1
-                                startTick = pygame.time.get_ticks()
-                                updatePlayers()
-                                updateRolls(int(roll))
+                            nextTurn()
+                            displayPlayer()
+                            updateRolls(int(roll))
                             if len(nums) == 1:
                                 makeTextBox(manualRollRect,"1 roll")
                             else:
@@ -390,6 +409,8 @@ def gameMenu(players):
 
         pygame.display.update()
 
+
+# GUI functions
 def makeButton(rectangle,outlineWidth,txt="",bkgcolor=GRAY,txtcolor=WHITE):
     x = rectangle.left
     y = rectangle.top
@@ -414,6 +435,7 @@ def makeTextBox(rectangle,txt="",color=WHITE,txtcolor=BLACK):
     text = font.render(txt, True, txtcolor)
     screen.blit(text, [x+5,y+(h/2-text.get_height()/2+2),text.get_width(),text.get_height()])
 
+# class for handling graphs
 class Graph:
     def __init__(self, data, x, y, w, h, numXLines, numYLines, maxYAxis, yAxisLabel):
         self.data = data
@@ -451,14 +473,10 @@ class Graph:
         global bars
         yLines = []
         temp = []
-        for bar in bars:
-            if self.yAxisLabel == "%":
-                if bar.rect.top < self.h/2:
-                    temp.append(bar)
-            else:
-                if bar.rect.top > self.h/2:
-                    temp.append(bar)
-        bar = temp
+        if self.yAxisLabel == "%":
+            diceBars.clear()
+        else:
+            timerBars.clear()
         data = self.data
         x = self.x
         y = self.y
@@ -494,17 +512,14 @@ class Graph:
             sideLabel = font.render(f"{i*yAxisInterval:.1f}{self.yAxisLabel}", True, BLACK)
             screen.blit(sideLabel, [x-(5+sideLabel.get_width()),y-i*(h/(numYLines-1))-5,sideLabel.get_width(),sideLabel.get_height()])
 
-        midLine = pygame.Rect(0,height/2,width,thickness)
-        makeButton(midLine,0,"",BLACK)
-
         for i in range(numXLines):
             if i == 0 or i == numXLines-1:
                 xLine = pygame.Rect(x+i*(w/(numXLines-1)),y-h,thickness,h)
                 makeButton(xLine,0,"",BLACK)
 
-        i = 0
+        i = 0#959
         for key,value in data.items():
-            barWidth = 25
+            barWidth = w/(numXLines+1)
             if total == 0:
                 percent = 0
                 yValue = y
@@ -523,7 +538,11 @@ class Graph:
             else:
                 str = f"{value:.2f}s"
             hoverFont = pygame.font.SysFont(None, 20)
-            bars.append(Bar(bar,hoverFont.render(str,True,BLACK),i+1))
+
+            if self.yAxisLabel == "%":
+                diceBars.append(Bar(bar,hoverFont.render(str,True,BLACK),i+1))
+            else:
+                timerBars.append(Bar(bar,hoverFont.render(str,True,BLACK),i+1))
 
             if value > 0:
                 if self.yAxisLabel == "%":
@@ -538,22 +557,14 @@ class Graph:
             numLabel = font.render(f"{key}",True,BLACK)
             screen.blit(numLabel, [x+(i+1)*(w/(numXLines-1))-numLabel.get_width()/2,y+5,numLabel.get_width(),numLabel.get_height()])
             i+=1
-
-def main():
-    mainMenu()
-
-pygame.init()
-size = width, height = 700,700
-screen = pygame.display.set_mode(size)
-pygame.display.set_caption("Catan Stats")
-
-Player = namedtuple("Player", "name color turns averageTime")
-
-TextBox = namedtuple("TextBox", "rect txt active")
-Bar = namedtuple("Bar", "rect label num")
-bars=[]
-#TODO revamp labeling and data from dict to namedtuple
-#GraphData = namedtuple("GraphData", "xAxisLabel yAxisLabel yData")
+        bars.clear()
+        bars=diceBars+timerBars
 
 
-main()
+if __name__ == "__main__":
+    pygame.init()
+    size = width, height
+    screen = pygame.display.set_mode(size)
+    pygame.display.set_caption("Catan Stats")
+    #mainMenu()
+    gameMenu([Player("Bar","Red",0,0),Player("Tristan","Blue",0,0)])
