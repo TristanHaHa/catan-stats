@@ -422,8 +422,10 @@ def gameMenu(players):
                         if rect.collidepoint(event.pos):
                             updateRolls(value)
             # handles manual roll input
-            if manualRollTextBox.active:
-                if event.type == pygame.KEYDOWN:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    gameMenuRunning = False
+                if manualRollTextBox.active:
                     newText = manualRollTextBox.txt
                     if event.key == pygame.K_RETURN:
                         roll = manualRollTextBox.txt
@@ -442,7 +444,7 @@ def gameMenu(players):
                     makeTextBox(manualRollRect,newText)
 
         pygame.display.update()
-
+    playerMenu()
 
 # GUI functions
 def makeButton(rectangle,outlineWidth,txt="",bkgcolor=GRAY,txtcolor=WHITE):
@@ -596,11 +598,9 @@ class Graph:
         bars.clear()
         bars=diceBars+timerBars
 
-
 if __name__ == "__main__":
     pygame.init()
     size = width, height
     screen = pygame.display.set_mode(size)
     pygame.display.set_caption("Catan Stats")
-    #mainMenu()
-    gameMenu([Player("Bar","Red",0,0),Player("Tristan","Blue",0,0)])
+    mainMenu()
