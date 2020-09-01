@@ -19,6 +19,7 @@ Bar = namedtuple("Bar", "rect label num")
 diceBars=[]
 timerBars=[]
 bars=[]
+rollLabels=[]
 
 # displays main menu
 def mainMenu():
@@ -292,16 +293,6 @@ def gameMenu(players):
         timerTxtBkgd = pygame.Rect(0,topGraphMargin,timerTxt.get_width()+50, timerTxt.get_height())
         makeButton(timerTxtBkgd,0,"",RED)
         screen.blit(timerTxt, [(rollButtonX+buttonWidth/2)-timerTxt.get_width()/2,timerTxtBkgd.top,timerTxt.get_width(), timerTxt.get_height()])
-    def nextTurn():
-        nonlocal timerRunning, timesDict, playerTurn, index, startTick
-        timerRunning = True
-        if timesDict[players[playerTurn].name] == 0:
-            timesDict[players[playerTurn].name] = timesDict[players[playerTurn].name]+(ms/1000)
-        else:
-            timesDict[players[playerTurn].name] = (timesDict[players[playerTurn].name]+(ms/1000))/2
-        playerTurn = (playerTurn+1)%len(players)
-        index += 1
-        startTick = pygame.time.get_ticks()
     updateTimer()
     displayPlayer()
     displayRoll()
@@ -376,10 +367,16 @@ def gameMenu(players):
                         timerRunning = True
                         makeButton(startButton,outlineWidth,"Pause")
                 elif nextTurnButton.collidepoint(event.pos):
-                    nextTurn()
+                    timerRunning = True
+                    if timesDict[players[playerTurn].name] == 0:
+                        timesDict[players[playerTurn].name] = timesDict[players[playerTurn].name]+(ms/1000)
+                    else:
+                        timesDict[players[playerTurn].name] = (timesDict[players[playerTurn].name]+(ms/1000))/2
+                    playerTurn = (playerTurn+1)%len(players)
+                    index += 1
+                    startTick = pygame.time.get_ticks()
                     makeButton(startButton,outlineWidth,"Pause")
                     displayPlayer()
-                    updateRolls(roll)
                     updateGraphs()
                     index+=1
                 else:
@@ -536,6 +533,10 @@ class Graph:
             makeButton(bar,0,"",YELLOW)
 
 
+            #draw x axis labels
+            numLabel = font.render(f"{key}",True,BLACK)
+            screen.blit(numLabel, [x+(i+1)*(w/(numXLines-1))-numLabel.get_width()/2,y+5,numLabel.get_width(),numLabel.get_height()])
+
             if self.yAxisLabel == "%":
                 str = f"{percent*100:.2f}%"
             else:
@@ -556,9 +557,6 @@ class Graph:
                     screen.blit(bottomLabel, [x+(i+1)*(w/(numXLines-1))-12,yValue,bottomLabel.get_width(),bottomLabel.get_height()])
 
 
-            #draw x axis labels
-            numLabel = font.render(f"{key}",True,BLACK)
-            screen.blit(numLabel, [x+(i+1)*(w/(numXLines-1))-numLabel.get_width()/2,y+5,numLabel.get_width(),numLabel.get_height()])
             i+=1
         bars.clear()
         bars=diceBars+timerBars
