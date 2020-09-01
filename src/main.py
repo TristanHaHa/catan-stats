@@ -19,7 +19,7 @@ Bar = namedtuple("Bar", "rect label num")
 diceBars=[]
 timerBars=[]
 bars=[]
-rollLabels=[]
+rollLabels={}
 
 # displays main menu
 def mainMenu():
@@ -258,9 +258,16 @@ def gameMenu(players):
         rollGraph.update(numsDict)
         timerGraph.update(timesDict)
     def updateRolls(roll):
+        nonlocal index
+        displayRoll(roll)
         nums.append(roll)
         numsDict[roll] += 1
         updateGraphs()
+        if len(nums) == 1:
+            makeTextBox(manualRollRect,"1 roll")
+        else:
+            makeTextBox(manualRollRect,f"{len(nums)} rolls")
+        index+=1
     def updateButtons():
         if 0 <= index < len(nums)-1:
             makeButton(nextButton,outlineWidth,"Next")
@@ -335,11 +342,6 @@ def gameMenu(players):
                         pygame.time.delay(20)
                     updateRolls(roll)
                     players[playerTurn] = players[playerTurn]._replace(turns=players[playerTurn].turns+1,averageTime=ms/(players[playerTurn].turns+1))
-                    if len(nums) == 1:
-                        makeTextBox(manualRollRect,"1 roll")
-                    else:
-                        makeTextBox(manualRollRect,f"{len(nums)} rolls")
-
                 elif manualRollRect.collidepoint(event.pos):
                     manualRollTextBox = manualRollTextBox._replace(active=True)
                     makeTextBox(manualRollRect,manualRollTextBox.txt)
@@ -373,14 +375,15 @@ def gameMenu(players):
                     else:
                         timesDict[players[playerTurn].name] = (timesDict[players[playerTurn].name]+(ms/1000))/2
                     playerTurn = (playerTurn+1)%len(players)
-                    index += 1
                     startTick = pygame.time.get_ticks()
                     makeButton(startButton,outlineWidth,"Pause")
                     displayPlayer()
                     updateGraphs()
-                    index+=1
                 else:
-                    manualRollTextBox = manualRollTextBox._replace(active=False)
+                    for key,value in rollLabels.items():
+                        rect = pygame.Rect(key)
+                        if rect.collidepoint(event.pos):
+                            updateRolls(value)
             # handles manual roll input
             if manualRollTextBox.active:
                 if event.type == pygame.KEYDOWN:
@@ -388,14 +391,8 @@ def gameMenu(players):
                     if event.key == pygame.K_RETURN:
                         roll = manualRollTextBox.txt
                         if roll in ["2","3","4","5","6","7","8","9","10","11","12"]:
-                            displayRoll(roll)
-                            updateButtons()
                             newText = ""
                             updateRolls(int(roll))
-                            if len(nums) == 1:
-                                makeTextBox(manualRollRect,"1 roll")
-                            else:
-                                makeTextBox(manualRollRect,f"{len(nums)} rolls")
                         else:
                             manualRollTextBox = manualRollTextBox._replace(txt="")
                             makeTextBox(manualRollRect,"ERROR")
@@ -536,9 +533,10 @@ class Graph:
             #draw x axis labels
             numLabel = font.render(f"{key}",True,BLACK)
             screen.blit(numLabel, [x+(i+1)*(w/(numXLines-1))-numLabel.get_width()/2,y+5,numLabel.get_width(),numLabel.get_height()])
-
             if self.yAxisLabel == "%":
                 str = f"{percent*100:.2f}%"
+                if len(rollLabels) < 11:
+                    rollLabels[(x+(i+1)*(w/(numXLines-1))-numLabel.get_width()/2 -barWidth/2,y-h,barWidth,h+numLabel.get_height()*2)] = key
             else:
                 str = f"{value:.2f}s"
             hoverFont = pygame.font.SysFont(None, 20)
