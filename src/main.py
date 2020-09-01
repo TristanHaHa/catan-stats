@@ -198,6 +198,9 @@ def gameMenu(players):
     startButton = pygame.Rect(rollButtonX,150,buttonWidth,buttonHeight)
     makeButton(startButton,outlineWidth,"Start")
 
+    nextTurnButton = pygame.Rect(rollButtonX,startButton.bottom+20,buttonWidth,buttonHeight)
+    makeButton(nextTurnButton,outlineWidth,"Next")
+
     font = pygame.font.SysFont(None, 100)
 
     manualRollRect = pygame.Rect(rollButtonX-5,rollButtonY - 115,buttonWidth+10,buttonHeight)
@@ -339,13 +342,8 @@ def gameMenu(players):
                         displayRoll(roll)
                         pygame.display.update()
                         pygame.time.delay(20)
-                    players[playerTurn] = players[playerTurn]._replace(turns=players[playerTurn].turns+1,averageTime=ms/(players[playerTurn].turns+1))
-                    nextTurn()
-                    makeButton(startButton,outlineWidth,"Pause")
-                    displayPlayer()
                     updateRolls(roll)
-                    updateGraphs()
-                    index+=1
+                    players[playerTurn] = players[playerTurn]._replace(turns=players[playerTurn].turns+1,averageTime=ms/(players[playerTurn].turns+1))
                     if len(nums) == 1:
                         makeTextBox(manualRollRect,"1 roll")
                     else:
@@ -377,6 +375,13 @@ def gameMenu(players):
                             startTick += pygame.time.get_ticks() - pauseTick
                         timerRunning = True
                         makeButton(startButton,outlineWidth,"Pause")
+                elif nextTurnButton.collidepoint(event.pos):
+                    nextTurn()
+                    makeButton(startButton,outlineWidth,"Pause")
+                    displayPlayer()
+                    updateRolls(roll)
+                    updateGraphs()
+                    index+=1
                 else:
                     manualRollTextBox = manualRollTextBox._replace(active=False)
             # handles manual roll input
@@ -389,8 +394,6 @@ def gameMenu(players):
                             displayRoll(roll)
                             updateButtons()
                             newText = ""
-                            nextTurn()
-                            displayPlayer()
                             updateRolls(int(roll))
                             if len(nums) == 1:
                                 makeTextBox(manualRollRect,"1 roll")
