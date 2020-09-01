@@ -202,6 +202,9 @@ def gameMenu(players):
     nextTurnButton = pygame.Rect(rollButtonX,startButton.bottom+20,buttonWidth,buttonHeight)
     makeButton(nextTurnButton,outlineWidth,"Next")
 
+    resetButton = pygame.Rect(rollButtonX,nextTurnButton.bottom+20,buttonWidth,buttonHeight)
+    makeButton(resetButton,outlineWidth,"Reset")
+
     font = pygame.font.SysFont(None, 100)
 
     manualRollRect = pygame.Rect(rollButtonX-5,rollButtonY - 115,buttonWidth+10,buttonHeight)
@@ -303,7 +306,7 @@ def gameMenu(players):
     updateTimer()
     displayPlayer()
     displayRoll()
-    displayGraphs()
+    updateGraphs()
     while gameMenuRunning:
         # updates timer
         if timerRunning:
@@ -379,6 +382,40 @@ def gameMenu(players):
                     makeButton(startButton,outlineWidth,"Pause")
                     displayPlayer()
                     updateGraphs()
+                elif resetButton.collidepoint(event.pos):
+                    nums = []
+                    numsDict = {
+                        2:0,
+                        3:0,
+                        4:0,
+                        5:0,
+                        6:0,
+                        7:0,
+                        8:0,
+                        9:0,
+                        10:0,
+                        11:0,
+                        12:0
+                    }
+                    timesDict = {}
+                    for player in players:
+                        timesDict[player.name] = 0
+                    index = -1 #current roll index
+                    playerTurn = 0 # current player
+                    timerRunning = False
+                    barPopup = False # if bar is being displayed
+                    # timer variables
+                    ms = 0
+                    startTick=0
+                    pauseTick = 0
+
+                    updateTimer()
+                    displayPlayer()
+                    displayRoll()
+                    updateGraphs()
+                    updateButtons()
+                    makeTextBox(manualRollRect,"Input Roll")
+                    makeButton(startButton,outlineWidth,"Start")
                 else:
                     for key,value in rollLabels.items():
                         rect = pygame.Rect(key)
