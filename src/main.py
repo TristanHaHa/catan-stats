@@ -207,7 +207,7 @@ def gameMenu(players):
 
     font = pygame.font.SysFont(None, 100)
 
-    manualRollRect = pygame.Rect(rollButtonX-5,rollButtonY - 115,buttonWidth+10,buttonHeight)
+    manualRollRect = pygame.Rect(rollButtonX-20,rollButtonY - 115,buttonWidth+40,buttonHeight)
     manualRollTextBox = TextBox(manualRollRect,"",False)
     makeTextBox(manualRollRect,"Input Roll")
 
